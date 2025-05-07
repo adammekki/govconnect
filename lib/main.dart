@@ -1,44 +1,30 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
+import 'package:govconnect/providers/emergency_provider.dart';
+import 'package:govconnect/screens/emergencies/emergency.dart';
+import 'package:govconnect/screens/emergencies/problem_detail.dart';
+import 'package:govconnect/screens/emergencies/problems.dart';
+import 'package:govconnect/screens/emergencies/report_problem.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:govconnect/models/problem_report.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(
     MultiProvider(
       providers: [
-        // Add your providers here
+        ChangeNotifierProvider(create: (_) => EmergencyProvider()),
       ],
       child: const MyApp(),
-    )
-  ); 
-  }
+    ),
+  );
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -68,9 +54,61 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
+      home: const MyHomePage(title: 'GovConnect Home'),
       initialRoute: '/',
       routes: {
+        '/emergencyContacts': (context) => EmergencyContactsScreen(),
+        '/reportProblem': (context) => ReportProblemScreen(),
+        '/problemDetail': (context) => ProblemDetailScreen(
+              report: ModalRoute.of(context)!.settings.arguments as ProblemReport,
+            ),
+        '/problems': (context) => ProblemsScreen(),
       },
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/emergencyContacts');
+              },
+              child: const Text('Go to Emergency Contacts'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/reportProblem');
+              },
+              child: const Text('Go to Report Problem'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/problems');
+              },
+              child: const Text('Go to Problems List'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
