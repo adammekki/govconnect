@@ -6,6 +6,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        // Add your providers here
       ],
       child: const MyApp(),
     )
