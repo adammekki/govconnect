@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "63836770621",
+    "project_id": "mobile-805b2",
+    "storage_bucket": "mobile-805b2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:63836770621:android:834067cd603c0451b13554",
+        "android_client_info": {
+          "package_name": "com.example.govconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCII8mZh4DJ_UzPrkKL6YhOj-gH4Dd5cjg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
