@@ -22,9 +22,25 @@ class _LoginScreenState extends State<LoginScreen> {
       password: passwordController.text,
       );
 
-      if(userCredential.user != null) {
-        if(mounted){
-          Navigator.of(context).pop();
+      await FirebaseAuth.instance.currentUser?.reload();
+      final user = FirebaseAuth.instance.currentUser;
+    
+      // Check verification status and navigate accordingly
+      if (user != null) {
+        if (user.emailVerified) {
+          // User is verified, navigate to success screen
+          Navigator.pushNamedAndRemoveUntil(
+            context, 
+            '/login_success', 
+            (route) => false
+          );
+        } else {
+          // User is not verified, navigate to verification screen
+          Navigator.pushNamedAndRemoveUntil(
+            context, 
+            '/email_verification', 
+            (route) => false
+          );
         }
       }
 
