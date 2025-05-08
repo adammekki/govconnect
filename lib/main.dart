@@ -1,13 +1,24 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
+import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/announcements/file.dart';
+import 'package:govconnect/screens/communication/chat/chatGrid.dart';
+import 'package:govconnect/screens/communication/chat/chatProvider.dart';
+import 'package:govconnect/screens/emergencies/file.dart'; 
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('userId', 'Abdelrahman');
+
   runApp(
     MultiProvider(
       providers: [
         // Add your providers here
+        ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
       ],
       child: const MyApp(),
     )
@@ -25,6 +36,62 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Column(
+        children: [
+          const Text('Hello from the main screen'),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatGrid()),
+              );
+            },
+            child: const Text('Go to Chat'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AnnouncementsScreen()),
+              );
+            },
+            child: const Text('Go to Announcements'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdvertisementsScreen()),
+              );
+            },
+            child: const Text('Go to Advertisements'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EmergenciesScreen()),
+              );
+            },
+            child: const Text('Go to Emeregency'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -70,6 +137,11 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       initialRoute: '/',
       routes: {
+        '/': (context) => const HomePage(title: 'GovConnect'),
+        '/chat': (context) => const ChatGrid(),
+        '/announcements': (context) => AnnouncementsScreen(),
+        '/advertisements': (context) =>  AdvertisementsScreen(),
+        '/emergencies': (context) =>  EmergenciesScreen(),
       },
     );
   }
