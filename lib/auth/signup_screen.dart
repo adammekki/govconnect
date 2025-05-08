@@ -1,8 +1,62 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'email_verification_screen.dart';
 
-class SignupScreen extends StatelessWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+class SignupScreen extends StatefulWidget {
+  SignupScreen({super.key});
+
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final fullNameController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  var hidePass = true;
+
+  void createUser() async {
+    try{
+      if(passwordController.text == confirmPasswordController.text) {
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+
+      if(userCredential.user != null) {
+        if(mounted){
+          Navigator.of(context).pop();
+        }
+      }
+      
+      } else {
+        showErrorMessage('Passwords do not match');
+      }
+    } on FirebaseAuthException catch (e) {
+      showErrorMessage(e.code);
+    }
+  }
+
+  void showErrorMessage(String message){
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +103,11 @@ class SignupScreen extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
-            const TextField(
+            TextField(
               decoration: InputDecoration(
                 hintText: 'Enter your email',
               ),
+              controller: emailController,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 20),
@@ -63,10 +118,11 @@ class SignupScreen extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 8),
-            const TextField(
+            TextField(
               decoration: InputDecoration(
                 hintText: 'Enter your full name',
               ),
+              controller: fullNameController,
             ),
             const SizedBox(height: 20),
 
@@ -81,10 +137,15 @@ class SignupScreen extends StatelessWidget {
                 hintText: 'Enter your password',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.visibility_off),
-                  onPressed: () {},
+                  onPressed: () {
+                    setState(() {
+                      hidePass = !hidePass;
+                    });
+                  },
                 ),
               ),
-              obscureText: true,
+              controller: passwordController,
+              obscureText: hidePass,
             ),
             const SizedBox(height: 20),
 
@@ -97,24 +158,16 @@ class SignupScreen extends StatelessWidget {
             TextField(
               decoration: InputDecoration(
                 hintText: 'Enter your password',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.visibility_off),
-                  onPressed: () {},
-                ),
               ),
-              obscureText: true,
+              controller: confirmPasswordController,
+              obscureText: hidePass,
             ),
 
             const Spacer(),
 
             // Sign Up button
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const EmailVerificationScreen()),
-                );
-              },
+              onPressed: createUser,
               child: const Text('Sign up'),
             ),
             const SizedBox(height: 20),
@@ -133,7 +186,7 @@ class SignupScreen extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     child: const Text(
-                      'Sign up',
+                      'Sign in',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

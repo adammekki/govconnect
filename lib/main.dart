@@ -6,8 +6,10 @@ import 'package:govconnect/auth/login_success_screen.dart';
 import 'package:govconnect/auth/email_verification_screen.dart';
 import 'package:govconnect/providers/dummyProvider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:govconnect/auth/auth_page.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(
     MultiProvider(
@@ -25,29 +27,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'GovConnect',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GovConnect',
-      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1C2F41),
@@ -73,12 +52,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      initialRoute: '/login',
+      initialRoute: '/auth',
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
+        '/auth': (context) => const AuthPage(),
+        '/login': (context) => LoginScreen(),
+        '/signup': (context) => SignupScreen(),
         '/login_success': (context) => const LoginSuccessScreen(),
-        '/email_verification': (context) => const EmailVerificationScreen(),
+        '/email_verification': (context) => EmailVerificationScreen(),
       },
     );
   }

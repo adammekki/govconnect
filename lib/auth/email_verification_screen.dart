@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -9,16 +11,68 @@ class EmailVerificationScreen extends StatefulWidget {
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
-  final TextEditingController _otpController = TextEditingController();
   int _countdownSeconds = 60;
   Timer? _timer;
   bool _canResend = false;
+  bool _isEmailVerified = false;
 
   @override
   void initState() {
     super.initState();
+    _sendVerificationEmail();
+    _checkEmailVerification();
     _startCountdown();
   }
+
+  void _sendVerificationEmail() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      await user?.sendEmailVerification();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to send verification email. Please try again.'),
+          backgroundColor: Colors.red,
+        )
+      );
+    } finally {
+      setState(() {
+        _isEmailVerified = false;
+      });
+    }
+  }
+
+  void _checkEmailVerification() {
+    Timer.periodic(Duration(seconds: 3), (timer) async {
+      await FirebaseAuth.instance.currentUser?.reload();
+      final user = FirebaseAuth.instance.currentUser;
+      if(user?.emailVerified == true){
+        setState(() {
+          _isEmailVerified = true;
+        });
+
+        timer.cancel();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email verified successfully!'),
+            backgroundColor: Colors.green,
+          )
+        );
+
+        Future.delayed(Duration(seconds: 2), () {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/login',
+              (route) => false
+            );
+          }
+        );
+      }
+    });
+  }
+
+
 
   void _startCountdown() {
     setState(() {
@@ -40,8 +94,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   void _resendCode() {
     if (_canResend) {
-      // Here you would add the actual code to resend the verification email
-      // For now, we'll just restart the countdown
+      _sendVerificationEmail();
       _startCountdown();
     }
   }
@@ -99,18 +152,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: Image.asset(
-                        'assets/images/verification_illustration.png',
-                        width: 90,
-                        height: 90,
-                        // If you don't have this image, use an icon instead
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.email_outlined,
-                            size: 70,
-                            color: Color(0xFF1C2F41),
-                          );
-                        },
+                      child: Icon(
+                        Icons.mark_email_read,  // Or any other appropriate icon
+                        size: 70,
+                        color: Color(0xFF1C2F41),
                       ),
                     ),
                   ),
@@ -124,61 +169,39 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      'We\'ve sent a 5 digits verification code to maryjohnson1203@gmail.com',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  
-                  // Email section
-                  const Text(
-                    'Email',
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  
-                  // OTP input field
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: TextField(
-                      controller: _otpController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        hintText: '59382',
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                        suffixIcon: TextButton(
-                          onPressed: _canResend ? _resendCode : null,
-                          child: Text(
-                            _canResend 
-                                ? 'Resend' 
-                                : 'Resend in $_countdownSeconds s',
-                            style: TextStyle(
-                              color: _canResend 
-                                  ? const Color(0xFF1C2F41)
-                                  : Colors.grey,
-                            ),
-                          ),
+                    child: Text(
+                      'Please click the verification link we sent to your email.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Resend button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: TextButton(
+                      onPressed: _canResend ? _resendCode : null,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Text(
+                        _canResend 
+                            ? 'Resend verification email' 
+                            : 'Resend in $_countdownSeconds s',
+                        style: TextStyle(
+                          color: _canResend 
+                              ? Colors.white
+                              : Colors.white70,
+                          fontSize: 16,
                         ),
                       ),
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
                     ),
                   ),
                   
@@ -188,8 +211,25 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
                     child: ElevatedButton(
-                      onPressed: () {},
-                      child: const Text('Verify and Create Account'),
+                      onPressed: () async {
+                        await FirebaseAuth.instance.currentUser?.reload();
+                        final isVerified = FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+
+                        if(isVerified) {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                            (route) => false
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Email not verified. Please check your inbox.'),
+                            )
+                          );
+                        }
+                      },
+                      child: const Text('I have verified my email'),
                     ),
                   ),
                 ],
@@ -204,7 +244,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    _otpController.dispose();
     super.dispose();
   }
 }

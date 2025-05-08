@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginSuccessScreen extends StatelessWidget {
   const LoginSuccessScreen({Key? key}) : super(key: key);
+
+  void signUserOut() async {
+    // Sign out the user
+    await FirebaseAuth.instance.signOut();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,11 +94,11 @@ class LoginSuccessScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: signUserOut,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1C2F41),
                       ),
-                      child: const Text('Sign In'),
+                      child: const Text('Sign Out'),
                     ),
                   ),
                 ],

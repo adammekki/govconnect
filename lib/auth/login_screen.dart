@@ -1,9 +1,50 @@
 import 'package:flutter/material.dart';
-import 'login_success_screen.dart';
 import 'signup_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class LoginScreen extends StatefulWidget {
+  LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final emailController = TextEditingController();
+
+  final passwordController = TextEditingController();
+
+  void signUserIn() async {
+
+    try{
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      showErrorMessage(e.code);
+    }
+  }
+
+  void showErrorMessage(String message){
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +99,7 @@ class LoginScreen extends StatelessWidget {
                   decoration: const InputDecoration(
                     hintText: 'Enter your email',
                   ),
+                  controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                 ),
               ],
@@ -80,7 +122,8 @@ class LoginScreen extends StatelessWidget {
                       icon: const Icon(Icons.visibility_off),
                       onPressed: () {},
                     ),
-                  ),
+                  ), 
+                  controller: passwordController,
                   obscureText: true,
                 ),
               ],
@@ -101,12 +144,7 @@ class LoginScreen extends StatelessWidget {
             
             // Sign In button
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginSuccessScreen()),
-                );
-              },
+              onPressed: signUserIn,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1C2F41),
                 foregroundColor: Colors.white,
@@ -128,7 +166,7 @@ class LoginScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SignupScreen()),
+                      MaterialPageRoute(builder: (context) => SignupScreen()),
                     );
                   },
                   child: const Text(
