@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/announcements/announcementProvider.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/communication/chat/chatProvider.dart';
@@ -25,6 +26,7 @@ void main() async {
       providers: [
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
+        ChangeNotifierProvider(create: (_) => AnnouncementsProvider())
       ],
       child: const MyApp(),
     ),

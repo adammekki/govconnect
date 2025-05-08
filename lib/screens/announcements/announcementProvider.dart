@@ -1,0 +1,94 @@
+// announcements_provider.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:govconnect/screens/announcements/announcements.dart';
+
+// announcements_provider.dart
+class AnnouncementsProvider with ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  List<Announcement> _announcements = [];
+  bool _isLoading = false;
+
+  List<Announcement> get announcements => _announcements;
+  bool get isLoading => _isLoading;
+
+  Future<void> fetchAnnouncements() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final snapshot = await _firestore
+          .collection('announcements')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      _announcements = await Future.wait(
+        snapshot.docs.map((doc) async {
+          final commentsSnapshot = await doc.reference.collection('comments').get();
+          final comments = commentsSnapshot.docs
+              .map((commentDoc) => Comment.fromMap(commentDoc.data()))
+              .toList();
+
+          return Announcement.fromMap(doc.data(), doc.id, comments);
+        }),
+      );
+    } catch (error) {
+      debugPrint('Error fetching announcements: $error');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addComment(String announcementId, String content, bool anonymous) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not logged in');
+
+      await _firestore
+          .collection('announcements')
+          .doc(announcementId)
+          .collection('comments')
+          .add({
+        'userId': user.uid,
+        'content': content,
+        'anonymous': anonymous,
+        'createdAt': Timestamp.now(),
+      });
+
+      await fetchAnnouncements();
+    } catch (error) {
+      debugPrint('Error adding comment: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> createAnnouncement({
+    required String title,
+    required String description,
+    String? mediaUrl,
+    String category = 'General',
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not logged in');
+
+      await _firestore.collection('announcements').add({
+        'title': title,
+        'description': description,
+        'mediaUrl': mediaUrl,
+        'createdBy': user.uid,
+        'category': category,
+        'createdAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+
+      await fetchAnnouncements();
+    } catch (error) {
+      debugPrint('Error creating announcement: $error');
+      rethrow;
+    }
+  }
+}
