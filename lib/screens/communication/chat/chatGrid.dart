@@ -30,7 +30,7 @@ class ChatGrid extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               unselectedLabelColor: Colors.blueGrey,
               indicator: BoxDecoration(
-                color: const Color.fromARGB(255,65, 90, 119),
+                color: const Color.fromARGB(255, 65, 90, 119),
                 borderRadius: BorderRadius.circular(15),
               ),
               indicatorSize: TabBarIndicatorSize.tab,
@@ -47,17 +47,15 @@ class ChatGrid extends StatelessWidget {
             return TabBarView(
               children: [
                 // All Chats
-                _buildChatList(
-                  chatProvider.chats,
-                  chatProvider.currentUserId!,
-                ),
+                _buildChatList(chatProvider.chats, chatProvider.currentUserId!),
                 // Unread Chats
                 _buildChatList(
                   chatProvider.chats.where((chat) {
                     final isUser1 = chat.userId1 == chatProvider.currentUserId;
-                    final lastIndex = isUser1 
-                        ? chat.lastMessageIndexUser1 
-                        : chat.lastMessageIndexUser2;
+                    final lastIndex =
+                        isUser1
+                            ? chat.lastMessageIndexUser1
+                            : chat.lastMessageIndexUser2;
                     return lastIndex < chat.messages.length - 1;
                   }).toList(),
                   chatProvider.currentUserId!,
@@ -66,9 +64,10 @@ class ChatGrid extends StatelessWidget {
                 _buildChatList(
                   chatProvider.chats.where((chat) {
                     final isUser1 = chat.userId1 == chatProvider.currentUserId;
-                    final lastIndex = isUser1 
-                        ? chat.lastMessageIndexUser1 
-                        : chat.lastMessageIndexUser2;
+                    final lastIndex =
+                        isUser1
+                            ? chat.lastMessageIndexUser1
+                            : chat.lastMessageIndexUser2;
                     return lastIndex >= chat.messages.length - 1;
                   }).toList(),
                   chatProvider.currentUserId!,
@@ -85,7 +84,7 @@ class ChatGrid extends StatelessWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.add, color: Colors.blue),
-                        onPressed: () {}
+                        onPressed: () {},
                       ),
                       // Option to start chat with a friend
                       const Text(
@@ -94,10 +93,10 @@ class ChatGrid extends StatelessWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.add, color: Colors.blue),
-                        onPressed: () {}
+                        onPressed: () => _showCreateChatDialog(context),
                       ),
-                    ]
-                  )
+                    ],
+                  ),
                 ),
               ],
             );
@@ -116,4 +115,52 @@ class ChatGrid extends StatelessWidget {
       },
     );
   }
+}
+
+void _showCreateChatDialog(BuildContext context) {
+  final TextEditingController userIdController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 41, 59, 94),
+        title: const Text(
+          'Start New Chat',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: TextField(
+          controller: userIdController,
+          decoration: const InputDecoration(
+            hintText: 'Enter friend\'s User ID',
+            hintStyle: TextStyle(color: Colors.black),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text('Create Chat'),
+            onPressed: () {
+              if (userIdController.text.isNotEmpty) {
+                Provider.of<ChatProvider>(
+                  context,
+                  listen: false,
+                ).createChat(userIdController.text);
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

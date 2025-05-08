@@ -6,6 +6,7 @@ class ChatWidget extends StatelessWidget {
   final Chat chat;
   final String userId;
 
+
   const ChatWidget({
     super.key,
     required this.chat,
@@ -16,6 +17,8 @@ class ChatWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final lastMessage = chat.messages.isNotEmpty ? chat.messages.last : null;
     final int unreadMessagesCount = _getUnreadCount(chat);
+    final userName1 = chat.userId1 == userId ? chat.userName1 : chat.userName2;
+    final userName2 = chat.userId1 == userId ? chat.userName2 : chat.userName1;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -33,7 +36,7 @@ class ChatWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              _getChatName(chat),
+              userId == chat.userId1 ? userName2 : userName1,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -55,7 +58,7 @@ class ChatWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  ('${userId == lastMessage?.userId ? 'You': lastMessage?.userId}: ${lastMessage?.text}') ?? '',
+                  (lastMessage == null ? 'No messages sent' : '${userId == lastMessage.userId ? 'You': lastMessage.userId == chat.userId1 ? userName1 : userName2}: ${lastMessage.text}'),
                   style: TextStyle(
                     color: unreadMessagesCount > 0 ? Colors.blue : Colors.grey,
                     overflow: TextOverflow.ellipsis,
@@ -85,17 +88,11 @@ class ChatWidget extends StatelessWidget {
         ),
         onTap: () {
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ChatPage(chatId: chat.id),
+            builder: (context) => ChatPage(chatId: chat.id, userId: userId),
           ));
         },
       ),
     );
-  }
-
-  String _getChatName(Chat chat) {
-    final otherUserId = chat.userId1 == userId ? chat.userId2 : chat.userId1;
-    // Use display name if available, otherwise use userId
-    return otherUserId;
   }
 
   String _formatTime(DateTime time) {

@@ -6,8 +6,10 @@ import 'messagesGrid.dart';
 
 class ChatPage extends StatefulWidget {
   final String chatId;
+  final String userId;
 
-  const ChatPage({Key? key, required this.chatId}) : super(key: key);
+  const ChatPage({Key? key, required this.chatId, required this.userId})
+    : super(key: key);
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -54,7 +56,9 @@ class _ChatPageState extends State<ChatPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      chat.userId2,
+                      chat.userId1 == widget.userId
+                          ? chat.userName2
+                          : chat.userName2,
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     Text(
@@ -113,6 +117,28 @@ class _ChatPageState extends State<ChatPage> {
                             hintText: 'Type your message...',
                             hintStyle: TextStyle(color: Colors.grey[400]),
                             border: InputBorder.none,
+                            filled: true,
+                            fillColor: Color.fromARGB(
+                              255,
+                              41,
+                              59,
+                              94,
+                            ), // darker shade for text input
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: const BorderSide(
+                                color: Colors.blue,
+                                width: 1,
+                              ),
+                            ),
                           ),
                         ),
                       ),
