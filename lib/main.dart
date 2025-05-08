@@ -9,10 +9,10 @@ import 'package:govconnect/auth/login_screen.dart';
 import 'package:govconnect/auth/signup_screen.dart';
 import 'package:govconnect/auth/login_success_screen.dart';
 import 'package:govconnect/auth/email_verification_screen.dart';
-import 'package:govconnect/providers/dummyProvider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:govconnect/auth/auth_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:govconnect/homePage_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,62 +43,6 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Column(
-        children: [
-          const Text('Hello from the main screen'),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ChatGrid()),
-              );
-            },
-            child: const Text('Go to Chat'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AnnouncementsScreen()),
-              );
-            },
-            child: const Text('Go to Announcements'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AdvertisementsScreen()),
-              );
-            },
-            child: const Text('Go to Advertisements'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => EmergenciesScreen()),
-              );
-            },
-            child: const Text('Go to Emeregency'),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -26,7 +26,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if(userCredential.user != null) {
         if(mounted){
-          Navigator.of(context).pop();
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/email_verification',
+            (route) => false
+          );
         }
       }
       
