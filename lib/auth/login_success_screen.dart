@@ -4,9 +4,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 class LoginSuccessScreen extends StatelessWidget {
   const LoginSuccessScreen({Key? key}) : super(key: key);
 
-  void signUserOut() async {
+  void signUserOut(BuildContext context) async {
+    try {
     // Sign out the user
-    await FirebaseAuth.instance.signOut();
+      await FirebaseAuth.instance.signOut();
+      
+      // Navigate back to login screen
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+          context, 
+          '/login', 
+          (route) => false
+        );
+      }
+    } catch (e) {
+      print('Error signing out: $e');
+    }
   }
 
   @override
@@ -94,7 +107,7 @@ class LoginSuccessScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: ElevatedButton(
-                      onPressed: signUserOut,
+                      onPressed: () => signUserOut(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1C2F41),
                       ),
