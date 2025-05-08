@@ -149,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
         '/signup': (context) => SignupScreen(),
         '/login_success': (context) => const LoginSuccessScreen(),
         '/email_verification': (context) => EmailVerificationScreen(),
-        '/': (context) => const HomePage(title: 'GovConnect'),
+        '/home': (context) => const HomePage(title: 'GovConnect'),
         '/chat': (context) => const ChatGrid(),
         '/announcements': (context) => AnnouncementsScreen(),
         '/advertisements': (context) =>  AdvertisementsScreen(),
