@@ -20,12 +20,11 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize the provider when the screen loads
+    // Initialize the provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProblemReportProvider>(context, listen: false).initialize();
     });
   }
-
 
   @override
   void dispose() {
@@ -40,9 +39,17 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1C2F41),
         elevation: 0,
-        title: const Text(
-          'All Reported Problems',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        leading: IconButton(
+          icon: const Icon(Icons.account_balance, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Consumer<ProblemReportProvider>(
+          builder: (context, provider, child) {
+            return Text(
+              provider.isGovernment ? 'All Reported Problems' : 'My Reports',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            );
+          },
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -77,6 +84,15 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
       ),
       body: Consumer<ProblemReportProvider>(
         builder: (context, provider, child) {
+          if (provider.currentUserId == null) {
+            return const Center(
+              child: Text(
+                'Please sign in to view problems',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
           var problems = provider.problemReports;
 
           // Apply filters
@@ -156,21 +172,79 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
                 ),
               ),
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => provider.fetchProblemReports(),
-                  child: problems.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No problems found.',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: problems.length,
-                          itemBuilder: (context, index) {
-                            final report = problems[index];
-                            return Card(
+                child: problems.isEmpty
+                    ? Center(
+                        child: Text(
+                          provider.isGovernment
+                              ? 'No problems reported yet.'
+                              : 'You haven\'t reported any problems yet.',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: problems.length,
+                        itemBuilder: (context, index) {
+                          final report = problems[index];
+                          return Dismissible(
+                            key: Key(report.id),
+                            // Only allow dismissing if user is government or owns the report
+                            direction: (provider.isGovernment || report.userId == provider.currentUserId)
+                                ? DismissDirection.endToStart
+                                : DismissDirection.none,
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20.0),
+                              color: Colors.red,
+                              child: const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            confirmDismiss: (direction) async {
+                              return await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    backgroundColor: const Color(0xFF1C2F41),
+                                    title: const Text(
+                                      'Confirm Delete',
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                    content: const Text(
+                                      'Are you sure you want to delete this report?',
+                                      style: TextStyle(color: Colors.white70),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text(
+                                          'CANCEL',
+                                          style: TextStyle(color: Colors.white70),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        child: const Text('DELETE'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            onDismissed: (direction) {
+                              provider.deleteProblemReport(report.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Problem report deleted'),
+                                ),
+                              );
+                            },
+                            child: Card(
                               color: const Color(0xFF181B2C),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -227,12 +301,26 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
                                   );
                                 },
                               ),
-                            );
-                          },
-                        ),
-                ),
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
+          );
+        },
+      ),
+      floatingActionButton: Consumer<ProblemReportProvider>(
+        builder: (context, provider, child) {
+          // Only show FAB for citizens
+          if (provider.isGovernment) return const SizedBox.shrink();
+          
+          return FloatingActionButton(
+            backgroundColor: const Color(0xFF1C2F41),
+            onPressed: () {
+              Navigator.pushNamed(context, '/reportProblem');
+            },
+            child: const Icon(Icons.add),
           );
         },
       ),
@@ -249,8 +337,8 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
         ),
       ),
       backgroundColor: const Color(0xFF181B2C),
-      selectedColor: Theme.of(context).primaryColor,
-      onSelected: (selected) {
+      selectedColor: const Color(0xFF1C2F41),
+      onSelected: (bool selected) {
         setState(() {
           _selectedStatus = selected ? value : 'all';
         });
@@ -258,20 +346,20 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
     );
   }
 
-  static Color _getStatusColor(String status) {
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
         return Colors.orange;
       case 'in_progress':
         return Colors.blue;
-      case 'resolved':
+      case 'completed':
         return Colors.green;
       default:
         return Colors.grey;
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
   }
 }

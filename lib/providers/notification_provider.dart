@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Initializes notification permissions and FCM token
   Future<void> initialize() async {
@@ -15,25 +17,16 @@ class NotificationProvider with ChangeNotifier {
       sound: true,
     );
 
-    // Get FCM token
-    String? token = await _messaging.getToken();
-    if (token != null) {
-      // Create or update user document
-      final userDocRef = _firestore.collection('users').doc('current_user_id');
-      final userDoc = await userDocRef.get();
-      
-      if (!userDoc.exists) {
-        // Create new user document
-        await userDocRef.set({
+    // Get current user
+    final user = _auth.currentUser;
+    if (user != null) {
+      // Get FCM token
+      String? token = await _messaging.getToken();
+      if (token != null) {
+        // Update user document
+        await _firestore.collection('Users').doc(user.uid).update({
           'fcmToken': token,
-          'role': 'citizen', // Default role
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        // Update existing user document
-        await userDocRef.update({
-          'fcmToken': token,
-          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLogin': FieldValue.serverTimestamp(),
         });
       }
     }
@@ -47,7 +40,7 @@ class NotificationProvider with ChangeNotifier {
     try {
       // Get admin's FCM token
       final adminDoc = await _firestore
-          .collection('users')
+          .collection('Users')
           .where('role', isEqualTo: 'government')
           .limit(1)
           .get();
@@ -76,7 +69,7 @@ class NotificationProvider with ChangeNotifier {
     required String body,
   }) async {
     try {
-      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
       final userToken = userDoc.data()?['fcmToken'];
       if (userToken != null) {
         await _firestore.collection('notifications').add({
