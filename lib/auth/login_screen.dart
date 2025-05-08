@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void signUserIn() async {
     try{
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: emailController.text,
       password: passwordController.text,
       );

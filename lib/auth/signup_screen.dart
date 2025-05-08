@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'email_verification_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupScreen extends StatefulWidget {
   SignupScreen({super.key});
@@ -25,6 +25,14 @@ class _SignupScreenState extends State<SignupScreen> {
         );
 
       if(userCredential.user != null) {
+
+        await FirebaseFirestore.instance.collection('Users').doc(userCredential.user?.uid).set({
+          'email': emailController.text,
+          'fullName': fullNameController.text,
+          'createdAt': FieldValue.serverTimestamp(),
+          // Add any other user data fields you want to store
+        });
+        
         if(mounted){
           Navigator.pushNamedAndRemoveUntil(
             context,
