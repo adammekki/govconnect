@@ -5,10 +5,17 @@ import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/communication/chat/chatProvider.dart';
 import 'package:govconnect/screens/emergencies/file.dart'; 
 import 'package:provider/provider.dart';
+import 'package:govconnect/auth/login_screen.dart';
+import 'package:govconnect/auth/signup_screen.dart';
+import 'package:govconnect/auth/login_success_screen.dart';
+import 'package:govconnect/auth/email_verification_screen.dart';
+import 'package:govconnect/providers/dummyProvider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:govconnect/auth/auth_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final prefs = await SharedPreferences.getInstance();
@@ -21,9 +28,9 @@ void main() async {
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
       ],
       child: const MyApp(),
-    )
-  ); 
-  }
+    ),
+  );
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -135,8 +142,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      initialRoute: '/',
+      initialRoute: '/auth',
       routes: {
+        '/auth': (context) => const AuthPage(),
+        '/login': (context) => LoginScreen(),
+        '/signup': (context) => SignupScreen(),
+        '/login_success': (context) => const LoginSuccessScreen(),
+        '/email_verification': (context) => EmailVerificationScreen(),
         '/': (context) => const HomePage(title: 'GovConnect'),
         '/chat': (context) => const ChatGrid(),
         '/announcements': (context) => AnnouncementsScreen(),
