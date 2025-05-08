@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:govconnect/providers/emergency_provider.dart';
+import 'package:govconnect/providers/notification_provider.dart';
+import 'package:govconnect/providers/problem_report_provider.dart';
 import 'package:govconnect/screens/emergencies/emergency.dart';
-import 'package:govconnect/screens/emergencies/problem_detail.dart';
-import 'package:govconnect/screens/emergencies/problems.dart';
-import 'package:govconnect/screens/emergencies/report_problem.dart';
+import 'package:govconnect/screens/problems/problem_detail.dart';
+import 'package:govconnect/screens/problems/problems.dart';
+import 'package:govconnect/screens/problems/report_problem.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 //import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,6 +18,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
+        ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),
@@ -80,9 +84,33 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    final problemProvider = Provider.of<ProblemReportProvider>(context);
+    
     return Scaffold(
+      backgroundColor: const Color(0xFF1C2F41),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF1C2F41),
         title: Text(widget.title),
+        actions: [
+          // Admin toggle button
+          IconButton(
+            icon: Icon(
+              problemProvider.isAdmin ? Icons.admin_panel_settings : Icons.person,
+              color: problemProvider.isAdmin ? Colors.green : Colors.white,
+            ),
+            onPressed: () {
+              problemProvider.setAdminStatus(!problemProvider.isAdmin);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    problemProvider.isAdmin ? 'Admin mode enabled' : 'Admin mode disabled'
+                  ),
+                  backgroundColor: problemProvider.isAdmin ? Colors.green : Colors.grey,
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -94,12 +122,14 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text('Go to Emergency Contacts'),
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/reportProblem');
               },
               child: const Text('Go to Report Problem'),
             ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/problems');

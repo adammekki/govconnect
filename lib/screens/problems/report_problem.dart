@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../providers/emergency_provider.dart';
+import '../../providers/problem_report_provider.dart';
 import 'dart:io';
 
 class ReportProblemScreen extends StatefulWidget {
@@ -21,6 +21,13 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   LatLng? _selectedLocation;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+  GoogleMapController? _mapController;
+
+  // Initial camera position (can be set to your city's coordinates)
+  static const _initialCameraPosition = CameraPosition(
+    target: LatLng(24.7136, 46.6753), // Riyadh coordinates
+    zoom: 11,
+  );
 
   Future<void> _pickImage() async {
     try {
@@ -41,7 +48,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
     if (_formKey.currentState!.validate() && _selectedLocation != null) {
       setState(() => _isLoading = true);
       try {
-        final provider = Provider.of<EmergencyProvider>(context, listen: false);
+        final provider = Provider.of<ProblemReportProvider>(context, listen: false);
         await provider.submitProblemReport(
           userId: 'demo_user_id',
           title: _titleController.text,
@@ -53,6 +60,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Problem reported successfully')),
         );
+        Navigator.pop(context); // Return to previous screen after successful submission
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error submitting report: $e')),
@@ -60,6 +68,10 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
       } finally {
         setState(() => _isLoading = false);
       }
+    } else if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a location on the map')),
+      );
     }
   }
 
@@ -69,6 +81,11 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
     setState(() {
       _image = null;
       _selectedLocation = null;
+      if (_mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(_initialCameraPosition),
+        );
+      }
     });
   }
 
@@ -76,6 +93,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -134,21 +152,19 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
               ],
               const SizedBox(height: 16),
               Container(
-                height: 180,
+                height: 200,
                 decoration: BoxDecoration(
                   color: const Color(0xFF181B2C),
                   border: Border.all(color: Colors.white12),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: _selectedLocation == null
-                    ? const Center(
-                        child: Text('Select location on map', style: TextStyle(color: Colors.white54)),
-                      )
-                    : GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _selectedLocation!,
-                          zoom: 15,
-                        ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Stack(
+                    children: [
+                      GoogleMap(
+                        initialCameraPosition: _initialCameraPosition,
+                        onMapCreated: (controller) => _mapController = controller,
                         onTap: (LatLng location) {
                           setState(() {
                             _selectedLocation = location;
@@ -162,18 +178,31 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                                   position: _selectedLocation!,
                                 ),
                               },
+                        zoomControlsEnabled: false,
+                        mapToolbarEnabled: false,
+                        myLocationButtonEnabled: false,
                       ),
+                      if (_selectedLocation == null)
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Tap to select location',
+                              style: TextStyle(color: Colors.white, fontSize: 14),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _submitReport,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Submit Report'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF181B2C),
                   foregroundColor: Colors.white,
@@ -182,6 +211,13 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Submit Report'),
               ),
             ],
           ),
