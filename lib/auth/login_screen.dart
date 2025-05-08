@@ -13,14 +13,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
 
   final passwordController = TextEditingController();
+  var hidePass = true;
 
   void signUserIn() async {
-
     try{
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: emailController.text,
       password: passwordController.text,
       );
+
+      if(userCredential.user != null) {
+        if(mounted){
+          Navigator.of(context).pop();
+        }
+      }
+
     } on FirebaseAuthException catch (e) {
       showErrorMessage(e.code);
     }
@@ -120,24 +127,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     hintText: 'Enter your password',
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.visibility_off),
-                      onPressed: () {},
+                      onPressed: () {
+                        setState( () {
+                          hidePass = !hidePass;
+                        });
+                      },
                     ),
                   ), 
                   controller: passwordController,
-                  obscureText: true,
+                  obscureText: hidePass,
                 ),
               ],
-            ),
-            
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'Forgot Password?',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ),
             ),
             
             const Spacer(),

@@ -15,7 +15,7 @@ class AuthPage extends StatelessWidget {
         builder: (context, snapshot) {
           // User is logged in
           if (snapshot.hasData) {
-            final user = snapshot.data!;
+            var user = snapshot.data!;
             
             // Check if email is verified (if you're using email verification)
             // If not verified AND is a new user, show verification screen
