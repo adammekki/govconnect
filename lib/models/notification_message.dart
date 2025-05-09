@@ -20,14 +20,23 @@ class NotificationMessage {
   });
 
   factory NotificationMessage.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    
+    // Handle Timestamp conversion
+    DateTime createdAtDate;
+    if (data['createdAt'] is Timestamp) {
+      createdAtDate = (data['createdAt'] as Timestamp).toDate();
+    } else {
+      createdAtDate = DateTime.now(); // Fallback if timestamp is missing
+    }
+
     return NotificationMessage(
       id: doc.id,
       title: data['title'] ?? '',
       body: data['body'] ?? '',
       type: data['type'] ?? 'general',
       read: data['read'] ?? false,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: createdAtDate,
       userId: data['userId'] ?? '',
     );
   }

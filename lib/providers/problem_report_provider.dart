@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../models/problem_report.dart';
+import '../providers/notification_provider.dart';
 
 class ProblemReportProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -131,7 +132,16 @@ class ProblemReportProvider with ChangeNotifier {
         createdAt: DateTime.now(),
       );
 
-      await _firestore.collection('problem_reports').add(report.toMap());
+      // Submit the report
+      final docRef = await _firestore.collection('problem_reports').add(report.toMap());
+
+      // Create notifications for the user and government officials
+      final notificationProvider = NotificationProvider();
+      await notificationProvider.createProblemReportNotification(
+        problemTitle: title,
+        userId: _currentUserId!,
+      );
+
     } catch (e) {
       throw Exception('Failed to submit problem report: $e');
     }
