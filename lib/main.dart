@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+
 import 'package:govconnect/models/problem_report.dart';
 //providers
 import 'package:provider/provider.dart';
@@ -26,6 +27,7 @@ import 'package:govconnect/screens/emergencies/emergency.dart';
 import 'package:govconnect/screens/problems/problem_detail.dart';
 import 'package:govconnect/screens/problems/problems.dart';
 import 'package:govconnect/screens/problems/report_problem.dart';
+import 'package:govconnect/screens/notifications/notifications_screen.dart';
 
 
 
@@ -42,15 +44,10 @@ void main() async {
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
-        ChangeNotifierProvider(
-          create: (_) {
-            final provider = ProblemReportProvider();
-            provider.initialize(); // Initialize the provider
-            return provider;
-          }
-        ),
+        ChangeNotifierProvider( create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
+
       child: const MyApp(),
     ),
   );
@@ -126,8 +123,8 @@ class _MyHomePageState extends State<MyHomePage> {
          ),
         '/problems': (context) => ProblemsScreen(),
         '/announcements': (context) => AnnouncementsScreen(),
+        '/notifications': (context) => NotificationsScreen(),
         '/advertisements': (context) =>  AdvertisementsScreen(),
-        
       },
     );
   }

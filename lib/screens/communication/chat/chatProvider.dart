@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'package:govconnect/screens/communication/chat/chatList.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'chat.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class ChatProvider extends ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Chat> _chats = [];
   String? _currentUserId;
   bool _isLoading = false;
@@ -13,64 +19,166 @@ class ChatProvider extends ChangeNotifier {
   String? get currentUserId => _currentUserId;
   bool get isLoading => _isLoading;
 
-  // Initialize the provider
+  // Load current user ID from SharedPreferences
+  Future<void> _loadCurrentUserId() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        _currentUserId = user.uid;
+      } else {
+        // Fallback to SharedPreferences if needed
+        final prefs = await SharedPreferences.getInstance();
+        _currentUserId = prefs.getString('userId');
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error loading current user ID: $e');
+      _currentUserId = null;
+    }
+  }
+
+  StreamSubscription<QuerySnapshot>? _chatSubscription;
+
+  @override
+  void dispose() {
+    _chatSubscription?.cancel();
+    super.dispose();
+  }
+
+  // Modify init method to use real-time updates
   Future<void> init() async {
     _setLoading(true);
     await _loadCurrentUserId();
-    await _loadChats();
+    _setupChatListener(); // Replace _loadChats() with this
     _setLoading(false);
   }
 
-  // Load current user ID from SharedPreferences
-  Future<void> _loadCurrentUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    _currentUserId = prefs.getString('userId');
-    notifyListeners();
-  }
-
-  // Load chats from storage or API
-  Future<void> _loadChats() async {
-    // TODO: Implement chat loading logic
-    // This could be from local storage or an API
-    // For now, we'll just simulate loading with a delay
-    await Future.delayed(const Duration(seconds: 2));
-    // sort by last message time
-    _chats = ChatList.getChats();
-    sort();
-  }
-
-  // Send a new message
-  Future<void> sendMessage(String chatId, String text, {String? imageUrl}) async {
+  // Add new method for real-time updates
+  void _setupChatListener() {
     if (_currentUserId == null) return;
 
-    final message = Message(
-      text: text,
-      imageUrl: imageUrl,
-      time: DateTime.now(),
-      userId: _currentUserId!,
-    );
+    // Cancel any existing subscription
+    _chatSubscription?.cancel();
 
+    // Listen to chats where user is user1
+    _chatSubscription = _firestore
+        .collection('chat')
+        .where('userId1', isEqualTo: _currentUserId)
+        .snapshots()
+        .listen((snapshot1) async {
+      try {
+        // Get chats where user is user2
+        final snapshot2 = await _firestore
+            .collection('chat')
+            .where('userId2', isEqualTo: _currentUserId)
+            .get();
 
-    // Find the chat by ID
-    final chat = _chats.firstWhere((chat) => chat.id == chatId);
+        final List<Chat> loadedChats = [];
 
-    // TODO: Implement message sending logic
-    // This could include:
-    // 1. Adding message to local state
-    chat.messages.add(message);
-    await seen(chatId); // Mark the message as seen
-    // 2. Sending to an API
-    // 3. Updating local storage
-    sort();
-    
-    notifyListeners();
+        // Process chats where user is user1
+        for (var doc in snapshot1.docs) {
+          final data = doc.data();
+          loadedChats.add(
+            Chat(
+              id: doc.id,
+              userId1: data['userId1'],
+              userId2: data['userId2'],
+              lastMessageIndexUser1: data['lastMessageIndexUser1'],
+              lastMessageIndexUser2: data['lastMessageIndexUser2'],
+              userName1: data['userName1'],
+              userName2: data['userName2'],
+              messages: List<Message>.from(
+                (data['messages'] as List).map(
+                  (m) => Message(
+                    text: m['text'],
+                    imageUrl: m['imageUrl'],
+                    time: (m['time'] as Timestamp).toDate(),
+                    userId: m['userId'],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        // Process chats where user is user2
+        for (var doc in snapshot2.docs) {
+          final data = doc.data();
+          loadedChats.add(
+            Chat(
+              id: doc.id,
+              userId1: data['userId1'],
+              userId2: data['userId2'],
+              lastMessageIndexUser1: data['lastMessageIndexUser1'],
+              lastMessageIndexUser2: data['lastMessageIndexUser2'],
+              userName1: data['userName1'],
+              userName2: data['userName2'],
+              messages: List<Message>.from(
+                (data['messages'] as List).map(
+                  (m) => Message(
+                    text: m['text'],
+                    imageUrl: m['imageUrl'],
+                    time: (m['time'] as Timestamp).toDate(),
+                    userId: m['userId'],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        _chats = loadedChats;
+        sort();
+        notifyListeners();
+      } catch (e) {
+        print('Error in chat listener: $e');
+      }
+    });
+  }
+  
+  // Send a new message
+  Future<void> sendMessage(
+    String chatId,
+    String text, {
+    String? imageUrl,
+  }) async {
+    if (_currentUserId == null) return;
+
+    try {
+      final message = Message(
+        text: text,
+        imageUrl: imageUrl,
+        time: DateTime.now(),
+        userId: _currentUserId!,
+      );
+
+      // Update Firestore
+      await _firestore.collection('chat').doc(chatId).update({
+        'messages': FieldValue.arrayUnion([
+          {
+            'text': message.text,
+            'imageUrl': message.imageUrl,
+            'time': message.time,
+            'userId': message.userId,
+          },
+        ]),
+      });
+
+      await seen(chatId);
+      sort();
+      notifyListeners();
+    } catch (e) {
+      print('Error sending message: $e');
+    }
   }
 
   // Sort chats by last message time
   void sort() {
     _chats.sort((a, b) {
-      final aLastMessage = a.messages.isNotEmpty ? a.messages.last.time : DateTime(0);
-      final bLastMessage = b.messages.isNotEmpty ? b.messages.last.time : DateTime(0);
+      final aLastMessage =
+          a.messages.isNotEmpty ? a.messages.last.time : DateTime(0);
+      final bLastMessage =
+          b.messages.isNotEmpty ? b.messages.last.time : DateTime(0);
       return bLastMessage.compareTo(aLastMessage); // Sort in descending order
     });
   }
@@ -79,22 +187,43 @@ class ChatProvider extends ChangeNotifier {
   Future<void> createChat(String otherUserId) async {
     if (_currentUserId == null) return;
 
-    final chat = Chat(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Replace with proper ID generation
-      userId1: _currentUserId!,
-      userId2: otherUserId,
-      lastMessageIndexUser1: -1,
-      lastMessageIndexUser2: -1,
-      messages: [],
-    );
+        // Helper function to get user display name
+    Future<String> getUserName(String? userId) async {
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
+      return userDoc.data()?['fullName'] ?? 'Unknown User';
+    }
 
-    // TODO: Implement chat creation logic
-    // This could include:
-    // 1. Adding chat to local state
-    // 2. Sending to an API
-    // 3. Updating local storage
+    final user2 = await getUserName(otherUserId);
+    final user1 = await getUserName(_currentUserId);
 
-    notifyListeners();
+    try {
+      final chatId = const Uuid().v4();
+      final chat = Chat(
+        id: chatId,
+        userId1: _currentUserId!,
+        userId2: otherUserId,
+        lastMessageIndexUser1: -1,
+        lastMessageIndexUser2: -1,
+        userName1: user1,
+        userName2: user2,
+        messages: [],
+      );
+
+      // Add to Firestore
+      await _firestore.collection('chat').doc(chatId).set({
+        'userId1': chat.userId1,
+        'userId2': chat.userId2,
+        'lastMessageIndexUser1': chat.lastMessageIndexUser1,
+        'lastMessageIndexUser2': chat.lastMessageIndexUser2,
+        'messages': [],
+        'userName1': chat.userName1,
+        'userName2': chat.userName2,
+      });
+
+      notifyListeners();
+    } catch (e) {
+      print('Error creating chat: $e');
+    }
   }
 
   // Helper method to set loading state
@@ -114,23 +243,42 @@ class ChatProvider extends ChangeNotifier {
 
   // Delete a chat
   Future<void> deleteChat(String chatId) async {
-    // TODO: Implement chat deletion logic
-    _chats.removeWhere((chat) => chat.id == chatId);
-    notifyListeners();
+    try {
+      // Delete from Firestore
+      await _firestore.collection('chat').doc(chatId).delete();
+
+      // Update local state
+      _chats.removeWhere((chat) => chat.id == chatId);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting chat: $e');
+    }
   }
 
-  // Mark messages as read
+  // Modify seen to use Firebase
   Future<void> seen(String chatId) async {
     if (_currentUserId == null) return;
 
-    final chat = _chats.firstWhere((chat) => chat.id == chatId);
-    if(chat.userId1 == _currentUserId) {
-      chat.lastMessageIndexUser1 = chat.messages.length - 1; // Update last message index for user 1
-    } else {
-      chat.lastMessageIndexUser2 = chat.messages.length - 1; // Update last message index for user 2
-    }
+    try {
+      final chat = _chats.firstWhere((chat) => chat.id == chatId);
+      final fieldToUpdate =
+          chat.userId1 == _currentUserId
+              ? 'lastMessageIndexUser1'
+              : 'lastMessageIndexUser2';
 
-    // TODO: Implement mark as read logic
-    notifyListeners();
+      await _firestore.collection('chat').doc(chatId).update({
+        fieldToUpdate: chat.messages.length - 1,
+      });
+
+      // Update local state
+      if (chat.userId1 == _currentUserId) {
+        chat.lastMessageIndexUser1 = chat.messages.length - 1;
+      } else {
+        chat.lastMessageIndexUser2 = chat.messages.length - 1;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error marking messages as seen: $e');
+    }
   }
 }

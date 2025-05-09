@@ -1,86 +1,167 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/notification_message.dart';
 
 class NotificationProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  
+  List<NotificationMessage> _notifications = [];
+  bool _isLoading = false;
 
-  /// Initializes notification permissions and FCM token
-  Future<void> initialize() async {
-    // Request notification permissions
-    await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+  List<NotificationMessage> get notifications => _notifications;
+  bool get isLoading => _isLoading;
+  int get unreadCount => _notifications.where((n) => !n.read).length;
 
-    // Get current user
-    final user = _auth.currentUser;
-    if (user != null) {
-      // Get FCM token
-      String? token = await _messaging.getToken();
-      if (token != null) {
-        // Update user document
-        await _firestore.collection('Users').doc(user.uid).update({
-          'fcmToken': token,
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
-      }
-    }
+  NotificationProvider() {
+    _initialize();
   }
 
-  /// Sends a notification to admin users
-  Future<void> sendNotificationToAdmin({
-    required String title,
-    required String body,
-  }) async {
+  void _initialize() {
+    // Listen to auth state changes
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        loadNotifications();
+      } else {
+        _notifications = [];
+        notifyListeners();
+      }
+    });
+  }
+
+  Future<void> loadNotifications() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
     try {
-      // Get admin's FCM token
-      final adminDoc = await _firestore
-          .collection('Users')
-          .where('role', isEqualTo: 'government')
-          .limit(1)
+      _isLoading = true;
+      notifyListeners();
+
+      final snapshot = await _firestore
+          .collection('notifications')
+          .where('userId', isEqualTo: user.uid)
+          .orderBy('createdAt', descending: true)
+          .limit(50)
           .get();
 
-      if (adminDoc.docs.isNotEmpty) {
-        final adminToken = adminDoc.docs.first.data()['fcmToken'];
-        if (adminToken != null) {
-          // Send notification using Firebase Cloud Functions
-          await _firestore.collection('notifications').add({
-            'token': adminToken,
-            'title': title,
-            'body': body,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        }
-      }
+      _notifications = snapshot.docs
+          .map((doc) => NotificationMessage.fromFirestore(doc))
+          .toList();
     } catch (e) {
-      print('Error sending notification: $e');
+      print('Error loading notifications: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// Sends a notification to a specific user
-  Future<void> sendNotificationToUser({
-    required String userId,
-    required String title,
-    required String body,
-  }) async {
+  Future<void> markAsRead(String notificationId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
     try {
-      final userDoc = await _firestore.collection('Users').doc(userId).get();
-      final userToken = userDoc.data()?['fcmToken'];
-      if (userToken != null) {
-        await _firestore.collection('notifications').add({
-          'token': userToken,
-          'title': title,
-          'body': body,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+      await _firestore.collection('notifications').doc(notificationId).update({
+        'read': true,
+      });
+
+      // Update local state
+      final index = _notifications.indexWhere((n) => n.id == notificationId);
+      if (index != -1) {
+        _notifications[index] = _notifications[index].copyWith(read: true);
+        notifyListeners();
       }
     } catch (e) {
-      print('Error sending notification to user: $e');
+      print('Error marking notification as read: $e');
     }
+  }
+
+  Future<void> markAllAsRead() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final batch = _firestore.batch();
+      final unreadNotifications = _notifications.where((n) => !n.read);
+
+      for (var notification in unreadNotifications) {
+        final ref = _firestore.collection('notifications').doc(notification.id);
+        batch.update(ref, {'read': true});
+      }
+
+      await batch.commit();
+
+      // Update local state
+      _notifications = _notifications.map((n) => n.copyWith(read: true)).toList();
+      notifyListeners();
+    } catch (e) {
+      print('Error marking all notifications as read: $e');
+    }
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await _firestore.collection('notifications').doc(notificationId).delete();
+
+      // Update local state
+      _notifications.removeWhere((n) => n.id == notificationId);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting notification: $e');
+    }
+  }
+
+  Future<void> createNotification({
+    required String title,
+    required String body,
+    required String type,
+    required String userId,
+  }) async {
+    try {
+      final notification = NotificationMessage(
+        id: '', // Firestore will generate this
+        title: title,
+        body: body,
+        type: type,
+        read: false,
+        createdAt: DateTime.now(),
+        userId: userId,
+      );
+
+      await _firestore.collection('notifications').add(notification.toMap());
+
+      // Reload notifications to get the new one
+      await loadNotifications();
+    } catch (e) {
+      print('Error creating notification: $e');
+    }
+  }
+
+  Future<void> createProblemReportNotification({
+    required String problemTitle,
+    required String userId,
+  }) async {
+    await createNotification(
+      title: 'New Problem Report',
+      body: 'A new problem has been reported: $problemTitle',
+      type: 'problem_report',
+      userId: userId,
+    );
+  }
+
+  Future<void> createProblemUpdateNotification({
+    required String problemTitle,
+    required String status,
+    required String userId,
+  }) async {
+    await createNotification(
+      title: 'Problem Status Update',
+      body: 'Problem "$problemTitle" status has been updated to: $status',
+      type: 'problem_update',
+      userId: userId,
+    );
   }
 }
