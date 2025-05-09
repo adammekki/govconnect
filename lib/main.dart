@@ -42,9 +42,14 @@ void main() async {
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
-        ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = ProblemReportProvider();
+            provider.initialize(); // Initialize the provider
+            return provider;
+          }
+        ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-
       ],
       child: const MyApp(),
     ),
@@ -105,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      initialRoute: '/auth',
+      initialRoute: '/home',
       routes: {
         '/auth': (context) => const AuthPage(),
         '/login': (context) => LoginScreen(),

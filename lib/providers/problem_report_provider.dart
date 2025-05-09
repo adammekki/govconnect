@@ -14,41 +14,76 @@ class ProblemReportProvider with ChangeNotifier {
   bool _isGovernment = false;
   String? _currentUserId;
   String? _userRole;
+  bool _isInitialized = false;
 
   List<ProblemReport> get problemReports => _problemReports;
   bool get isGovernment => _isGovernment;
   String? get currentUserId => _currentUserId;
   String? get userRole => _userRole;
+  bool get isInitialized => _isInitialized;
+
+  ProblemReportProvider() {
+    // Initialize immediately in constructor
+    initialize();
+  }
 
   /// Initializes problem reports listener and checks user role
   Future<void> initialize() async {
-    // Listen to auth state changes
-    _auth.authStateChanges().listen((User? user) async {
+    if (_isInitialized) return;
+
+    try {
+      // Set initial values from current auth state
+      final user = _auth.currentUser;
       if (user != null) {
         _currentUserId = user.uid;
-        // Get user role from Firestore
-        final userDoc = await _firestore.collection('Users').doc(user.uid).get();
-        if (userDoc.exists) {
-          _userRole = userDoc.data()?['role'];
-          _isGovernment = _userRole == 'government';
-          
-          // Set up problem reports listener based on role
-          _setupProblemReportsListener();
-          notifyListeners();
-        } else {
-          print('User document does not exist in Firestore');
-        }
-      } else {
-        _currentUserId = null;
-        _userRole = null;
-        _isGovernment = false;
-        _problemReports = [];
-        notifyListeners();
+        await _loadUserRole();
       }
-    });
+
+      // Listen to auth state changes
+      _auth.authStateChanges().listen((User? user) async {
+        if (user != null) {
+          _currentUserId = user.uid;
+          await _loadUserRole();
+        } else {
+          _currentUserId = null;
+          _userRole = null;
+          _isGovernment = false;
+          _problemReports = [];
+        }
+        notifyListeners();
+      });
+
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      print('Error initializing provider: $e');
+      _isInitialized = false;
+      notifyListeners();
+    }
   }
 
-  void _setupProblemReportsListener() {
+  Future<void> _loadUserRole() async {
+    try {
+      final userDoc = await _firestore.collection('Users').doc(_currentUserId).get();
+      if (userDoc.exists) {
+        _userRole = userDoc.data()?['role'];
+        _isGovernment = _userRole == 'government';
+        await _setupProblemReportsListener();
+      } else {
+        print('User document does not exist in Firestore');
+        _userRole = null;
+        _isGovernment = false;
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error loading user role: $e');
+      _userRole = null;
+      _isGovernment = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _setupProblemReportsListener() async {
     Query query;
     if (_isGovernment) {
       // Government officials can see all reports

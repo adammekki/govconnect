@@ -8,7 +8,6 @@ plugins {
 android {
     namespace = "com.example.govconnect"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -25,10 +24,11 @@ android {
         applicationId = "com.example.govconnect"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -56,5 +56,12 @@ dependencies {
 
   // Add the dependencies for any other desired Firebase products
   // https://firebase.google.com/docs/android/setup#available-libraries
+
+  // Google Maps
+  implementation("com.google.android.gms:play-services-maps:18.2.0")
+  implementation("com.google.android.gms:play-services-location:21.1.0")
+
+  // Multidex support
+  implementation("androidx.multidex:multidex:2.0.1")
 }
 

@@ -33,14 +33,14 @@ class EmergencyProvider with ChangeNotifier {
           _userRole = userDoc.data()?['role'];
           _isGovernment = _userRole == 'government';
           
-          // Set up FCM token
-          String? token = await _messaging.getToken();
-          if (token != null) {
-            await _firestore.collection('Users').doc(user.uid).update({
-              'fcmToken': token,
-              'lastLogin': FieldValue.serverTimestamp(),
-            });
-          }
+          // // Set up FCM token
+          // String? token = await _messaging.getToken();
+          // if (token != null) {
+          //   await _firestore.collection('Users').doc(user.uid).update({
+          //     'fcmToken': token,
+          //     'lastLogin': FieldValue.serverTimestamp(),
+          //   });
+          // }
 
           // Set up emergency contacts listener
           _setupEmergencyContactsListener();

@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../providers/problem_report_provider.dart';
+import '../../utils/map_style.dart';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReportProblemScreen extends StatefulWidget {
   const ReportProblemScreen({Key? key}) : super(key: key);
@@ -23,29 +26,84 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   bool _isLoading = false;
   GoogleMapController? _mapController;
 
-  // Initial camera position (can be set to your city's coordinates)
+  // Initial camera position 
   static const _initialCameraPosition = CameraPosition(
-    target: LatLng(24.7136, 46.6753), // Riyadh coordinates
+    target: LatLng(30.0444, 31.2357), // Cairo coordinates
     zoom: 11,
   );
 
   @override
   void initState() {
     super.initState();
-    // Check if user is authenticated and not a government official
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<ProblemReportProvider>(context, listen: false);
-      if (provider.currentUserId == null) {
-        Navigator.of(context).pushReplacementNamed('/login');
-        return;
-      }
-      if (provider.isGovernment) {
-        Navigator.of(context).pop();
+    _checkLocationPermission();
+  }
+
+  Future<void> _checkLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Government officials cannot report problems')),
+          const SnackBar(
+            content: Text('Location services are disabled. Please enable them in settings.'),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
-    });
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permissions are denied. Please enable them in settings.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permissions are permanently denied. Please enable them in settings.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    // When permissions are granted, get current location and update map
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      if (mounted && _mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(position.latitude, position.longitude),
+              zoom: 15,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error getting location: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _pickImage() async {
@@ -68,9 +126,10 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
       setState(() => _isLoading = true);
       try {
         final provider = Provider.of<ProblemReportProvider>(context, listen: false);
+        final auth = FirebaseAuth.instance;
         
-        // Check authentication again before submitting
-        if (provider.currentUserId == null) {
+        // Double check authentication before submitting
+        if (auth.currentUser == null || provider.currentUserId == null) {
           throw Exception('You must be logged in to submit a report');
         }
         
@@ -90,10 +149,13 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Problem reported successfully')),
           );
-          Navigator.pop(context); // Return to previous screen after successful submission
+          Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
+          if (e.toString().contains('must be logged in')) {
+            Navigator.of(context).pushReplacementNamed('/auth');
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error submitting report: $e')),
           );
@@ -140,7 +202,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
         backgroundColor: const Color(0xFF1C2F41),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.account_balance, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -150,11 +212,52 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
       ),
       body: Consumer<ProblemReportProvider>(
         builder: (context, provider, child) {
+          // First check if provider is initialized
+          if (!provider.isInitialized) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            );
+          }
+
+          // Check Firebase Auth directly
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Please sign in to report a problem',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF1C2F41),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                    onPressed: () {
+                      // Navigate to auth and clear the stack
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/auth',
+                        (route) => false,
+                      );
+                    },
+                    child: const Text('Sign In'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Check if user role is loaded
           if (provider.currentUserId == null) {
             return const Center(
-              child: Text(
-                'Please sign in to report a problem',
-                style: TextStyle(color: Colors.white),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             );
           }
@@ -221,8 +324,16 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                       child: Stack(
                         children: [
                           GoogleMap(
-                            initialCameraPosition: _initialCameraPosition,
-                            onMapCreated: (controller) => _mapController = controller,
+                            initialCameraPosition: const CameraPosition(
+                              target: LatLng(30.0444, 31.2357), // Cairo coordinates
+                              zoom: 11,
+                            ),
+                            onMapCreated: (GoogleMapController controller) {
+                              setState(() {
+                                _mapController = controller;
+                                controller.setMapStyle(MapStyle.darkMode);
+                              });
+                            },
                             onTap: (LatLng location) {
                               setState(() {
                                 _selectedLocation = location;
@@ -234,23 +345,27 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                                     Marker(
                                       markerId: const MarkerId('selected_location'),
                                       position: _selectedLocation!,
+                                      infoWindow: const InfoWindow(
+                                        title: 'Selected Location',
+                                      ),
                                     ),
                                   },
-                            zoomControlsEnabled: false,
+                            zoomControlsEnabled: true,
                             mapToolbarEnabled: false,
-                            myLocationButtonEnabled: false,
+                            myLocationButtonEnabled: true,
+                            myLocationEnabled: true,
+                            compassEnabled: true,
+                            mapType: MapType.normal,
                           ),
                           if (_selectedLocation == null)
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Text(
-                                  'Tap to select location',
-                                  style: TextStyle(color: Colors.white, fontSize: 14),
+                            const Center(
+                              child: Text(
+                                'Tap to select location',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  backgroundColor: Colors.black54,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -311,3 +426,5 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
     );
   }
 }
+
+

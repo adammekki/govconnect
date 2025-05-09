@@ -3,6 +3,7 @@ import '../../models/problem_report.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/problem_report_provider.dart';
+import '../../utils/map_style.dart';
 
 class ProblemDetailScreen extends StatelessWidget {
   final ProblemReport report;
@@ -243,6 +244,9 @@ class ProblemDetailScreen extends StatelessWidget {
                                 ),
                                 zoom: 15,
                               ),
+                              onMapCreated: (controller) {
+                                controller.setMapStyle(MapStyle.darkMode);
+                              },
                               markers: {
                                 Marker(
                                   markerId: const MarkerId('problem_location'),
@@ -250,11 +254,18 @@ class ProblemDetailScreen extends StatelessWidget {
                                     report.location.latitude,
                                     report.location.longitude,
                                   ),
+                                  infoWindow: InfoWindow(
+                                    title: report.title,
+                                    snippet: 'Status: ${report.status}',
+                                  ),
                                 ),
                               },
-                              zoomControlsEnabled: false,
+                              zoomControlsEnabled: true,
                               mapToolbarEnabled: false,
-                              myLocationButtonEnabled: false,
+                              myLocationButtonEnabled: true,
+                              myLocationEnabled: true,
+                              compassEnabled: true,
+                              mapType: MapType.normal,
                             ),
                           ),
                         ),
@@ -301,5 +312,3 @@ class ProblemDetailScreen extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
   }
 }
-
-
