@@ -1,22 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:govconnect/screens/advertisements/file.dart';
-import 'package:govconnect/screens/announcements/file.dart';
-import 'package:govconnect/screens/communication/chat/chatGrid.dart';
-import 'package:govconnect/screens/communication/chat/chatProvider.dart';
-import 'package:govconnect/screens/emergencies/file.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+
+import 'package:govconnect/models/problem_report.dart';
+//providers
 import 'package:provider/provider.dart';
+import 'package:govconnect/providers/emergency_provider.dart';
+import 'package:govconnect/providers/notification_provider.dart';
+import 'package:govconnect/providers/problem_report_provider.dart';
+
+//auth
 import 'package:govconnect/auth/login_screen.dart';
 import 'package:govconnect/auth/signup_screen.dart';
 import 'package:govconnect/auth/login_success_screen.dart';
 import 'package:govconnect/auth/email_verification_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:govconnect/auth/auth_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+//screens
 import 'package:govconnect/homePage_screen.dart';
+import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/announcements/file.dart';
+import 'package:govconnect/screens/communication/chat/chatGrid.dart';
+import 'package:govconnect/screens/communication/chat/chatProvider.dart';
+import 'package:govconnect/screens/emergencies/emergency.dart';
+import 'package:govconnect/screens/problems/problem_detail.dart';
+import 'package:govconnect/screens/problems/problems.dart';
+import 'package:govconnect/screens/problems/report_problem.dart';
+import 'package:govconnect/screens/notifications/notifications_screen.dart';
+
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('userId', 'Abdelrahman');
+
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('userId', 'Abdelrahman');
 
@@ -25,8 +47,15 @@ void main() async {
       providers: [
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
+        ChangeNotifierProvider(create: (_) => EmergencyProvider()),
+        ChangeNotifierProvider( create: (_) => ProblemReportProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
+
       child: const MyApp(),
+    ),
+  );
+}
     ),
   );
 }
@@ -88,15 +117,21 @@ class _MyHomePageState extends State<MyHomePage> {
       initialRoute: '/auth',
       routes: {
         '/auth': (context) => const AuthPage(),
-        '/login': (context) => LoginScreen(),
         '/signup': (context) => SignupScreen(),
-        '/login_success': (context) => const LoginSuccessScreen(),
         '/email_verification': (context) => EmailVerificationScreen(),
+        '/login': (context) => LoginScreen(),
+        '/login_success': (context) => const LoginSuccessScreen(),
         '/home': (context) => const HomePage(title: 'GovConnect'),
         '/chat': (context) => const ChatGrid(),
+        '/emergencyContacts': (context) => EmergencyContactsScreen(),
+        '/reportProblem': (context) => ReportProblemScreen(),
+        '/problems': (context) => ProblemsScreen(),
+        '/problemDetail': (context) => ProblemDetailScreen(
+         report: ModalRoute.of(context)!.settings.arguments as ProblemReport,
+         ),
         '/announcements': (context) => AnnouncementsScreen(),
+        '/notifications': (context) => NotificationsScreen(),
         '/advertisements': (context) =>  AdvertisementsScreen(),
-        '/emergencies': (context) =>  EmergenciesScreen(),
       },
     );
   }
