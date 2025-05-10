@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+
+import 'package:govconnect/Polls/DisplayPoll.dart';
+import 'package:govconnect/Polls/PollProvider.dart';
+import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/announcements/file.dart';
+import 'package:govconnect/screens/communication/chat/chatGrid.dart';
+import 'package:govconnect/screens/communication/chat/chatProvider.dart';
+import 'package:govconnect/screens/emergencies/file.dart'; 
+import 'Polls/AddPollScreen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'package:govconnect/models/problem_report.dart';
 //providers
+
 import 'package:provider/provider.dart';
 import 'package:govconnect/providers/emergency_provider.dart';
 import 'package:govconnect/providers/notification_provider.dart';
@@ -43,9 +54,13 @@ void main() async {
       providers: [
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
+
+        ChangeNotifierProvider(create: (ctx) => Pollproviders()),
+
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider( create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+
       ],
 
       child: const MyApp(),
@@ -125,6 +140,11 @@ class _MyHomePageState extends State<MyHomePage> {
         '/announcements': (context) => AnnouncementsScreen(),
         '/notifications': (context) => NotificationsScreen(),
         '/advertisements': (context) =>  AdvertisementsScreen(),
+
+        '/emergencies': (context) =>  EmergenciesScreen(),
+        '/polls': (context) =>  DisplayPoll(),
+        '/addPoll': (context) => Addpollscreen(),
+
       },
     );
   }
