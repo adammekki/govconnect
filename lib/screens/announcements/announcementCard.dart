@@ -22,6 +22,13 @@ class AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color(0xFF172B4D);  // Dark blue for app bar and main elements
+    const secondaryColor = Color(0xFF3B5998); // Slightly lighter blue for buttons
+    const backgroundColor = Color(0xFF0A1929); // Very dark blue for background
+    const cardColor = Color(0xFF1C3A5F); // Card background color
+    const accentColor = Color(0xFF4D8DFF); // Blue accent color for interactive elements
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFAFBFD2); // Light gray-blue for secondary text
     final theme = Theme.of(context);
     final currentUser = FirebaseAuth.instance.currentUser;
     final timeAgo = _formatTimeAgo(announcement.createdAt);
