@@ -12,6 +12,7 @@ import 'Polls/AddPollScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+
 import 'package:govconnect/models/problem_report.dart';
 //providers
 
@@ -49,6 +50,9 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('userId', 'Abdelrahman');
 
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('userId', 'Abdelrahman');
+
   runApp(
     MultiProvider(
       providers: [
@@ -64,6 +68,9 @@ void main() async {
       ],
 
       child: const MyApp(),
+    ),
+  );
+}
     ),
   );
 }
