@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:govconnect/Polls/DisplayPoll.dart';
 import 'package:govconnect/Polls/PollProvider.dart';
 import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/announcements/announcementProvider.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/communication/chat/chatProvider.dart';
@@ -55,11 +56,15 @@ void main() async {
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
 
+
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
 
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider( create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+
+
+        ChangeNotifierProvider(create: (_) => AnnouncementsProvider())
 
       ],
 
