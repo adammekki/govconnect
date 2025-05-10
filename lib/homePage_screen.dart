@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:govconnect/Polls/DisplayPoll.dart';
 import 'package:govconnect/screens/advertisements/file.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
@@ -73,6 +74,15 @@ class HomePage extends StatelessWidget {
             },
             child: const Text('Go to Emeregency'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DisplayPoll()),
+              );
+            },
+            child: const Text('Go to Polls'),
+          ), 
           ElevatedButton(
             onPressed: () {
               signUserOut(context);
