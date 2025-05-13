@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:govconnect/Polls/DisplayPoll.dart';
+import 'package:govconnect/screens/advertisements/AdsReview.dart';
 import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/Feed/FeedScreen.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/emergencies/file.dart';
@@ -82,6 +84,24 @@ class HomePage extends StatelessWidget {
               );
             },
             child: const Text('Go to Polls'),
+          ), 
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FeedScreen()),
+              );
+            },
+            child: const Text('Go to Feed'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AdReviewScreen()),
+              );
+            },
+            child: const Text('Go to ad review'),
           ), 
           ElevatedButton(
             onPressed: () {

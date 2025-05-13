@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:govconnect/Polls/DisplayPoll.dart';
 import 'package:govconnect/Polls/PollProvider.dart';
+import 'package:govconnect/screens/advertisements/AdProvider.dart';
+import 'package:govconnect/screens/advertisements/AdsReview.dart';
 import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/Feed/FeedScreen.dart';
+import 'package:govconnect/screens/announcements/announcementProvider.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/communication/chat/chatProvider.dart';
@@ -29,6 +33,8 @@ void main() async {
         // Add your providers here
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
+        ChangeNotifierProvider(create: (ctx) => AnnouncementsProvider()),
+        ChangeNotifierProvider(create: (ctx) => AdProvider()),
       ],
       child: const MyApp(),
     ),
@@ -103,6 +109,10 @@ class _MyHomePageState extends State<MyHomePage> {
         '/emergencies': (context) =>  EmergenciesScreen(),
         '/polls': (context) =>  DisplayPoll(),
         '/addPoll': (context) => Addpollscreen(),
+        '/feed': (context) => FeedScreen(),
+        '/adReview': (context) => AdReviewScreen(),
+
+
       },
     );
   }
