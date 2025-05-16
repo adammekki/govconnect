@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'chat.dart';
@@ -27,6 +29,7 @@ class _ChatPageState extends State<ChatPage> {
       Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
       _scrollToBottom();
     });
+    Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
   }
 
   @override
@@ -34,8 +37,11 @@ class _ChatPageState extends State<ChatPage> {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         final chat = chatProvider.getChatById(widget.chatId);
-        if (chat == null)
+        if (chat == null) {
           return const Scaffold(body: Center(child: Text('Chat not found')));
+        }
+
+        final otherUserName = chat.getOtherUserName(widget.userId);
 
         return Scaffold(
           backgroundColor: const Color.fromARGB(255, 27, 38, 59),
@@ -43,26 +49,60 @@ class _ChatPageState extends State<ChatPage> {
             backgroundColor: const Color.fromARGB(255, 51, 74, 117),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.blue),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Provider.of<ChatProvider>(
+                  context,
+                  listen: false,
+                ).seen(widget.chatId);
+                Navigator.pop(context);
+              },
             ),
             title: Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.grey[300],
-                  child: const Icon(Icons.person, size: 30, color: Colors.grey),
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.grey[300],
+                      child: const Icon(
+                        Icons.person,
+                        size: 30,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    // Online indicator
+                    if (chat.inChat[chat.getOtherUserId(widget.userId)] ??
+                        false)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color.fromARGB(255, 51, 74, 117),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      chat.userId1 == widget.userId
-                          ? chat.userName2
-                          : chat.userName2,
+                      otherUserName,
                       style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     Text(
-                      'Last seen recently',
+                      (chat.inChat[chat.getOtherUserId(widget.userId)] ??
+                        false)
+                          ? 'In the chat'
+                          : 'Last seen recently',
                       style: TextStyle(color: Colors.grey[400], fontSize: 12),
                     ),
                   ],
@@ -82,11 +122,10 @@ class _ChatPageState extends State<ChatPage> {
                 child: MessagesGrid(
                   messages: chat.messages,
                   currentUserId: chatProvider.currentUserId!,
-                  lastMessageIndexUser:
-                      chat.userId1 == chatProvider.currentUserId
-                          ? chat.lastMessageIndexUser2
-                          : chat.lastMessageIndexUser1,
-                  scrollController: _scrollController, // Pass the controller
+                  otherUserId: chat.getOtherUserId(chatProvider.currentUserId!),
+                  lastMessageIndices: chat.lastMessageIndex,
+                  scrollController: _scrollController,
+                  inChat: chat.inChat,
                 ),
               ),
               Container(

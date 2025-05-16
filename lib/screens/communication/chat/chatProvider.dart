@@ -7,7 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class ChatProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Chat> _chats = [];
@@ -53,90 +52,87 @@ class ChatProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  // Add new method for real-time updates
   void _setupChatListener() {
     if (_currentUserId == null) return;
 
-    // Cancel any existing subscription
     _chatSubscription?.cancel();
 
-    // Listen to chats where user is user1
     _chatSubscription = _firestore
         .collection('chat')
-        .where('userId1', isEqualTo: _currentUserId)
+        .where('users.${_currentUserId}', isGreaterThan: null)
         .snapshots()
-        .listen((snapshot1) async {
-      try {
-        // Get chats where user is user2
-        final snapshot2 = await _firestore
-            .collection('chat')
-            .where('userId2', isEqualTo: _currentUserId)
-            .get();
+        .listen((snapshot) async {
+          try {
+            final List<Chat> loadedChats = [];
 
-        final List<Chat> loadedChats = [];
+            for (var doc in snapshot.docs) {
+              final data = doc.data();
 
-        // Process chats where user is user1
-        for (var doc in snapshot1.docs) {
-          final data = doc.data();
-          loadedChats.add(
-            Chat(
-              id: doc.id,
-              userId1: data['userId1'],
-              userId2: data['userId2'],
-              lastMessageIndexUser1: data['lastMessageIndexUser1'],
-              lastMessageIndexUser2: data['lastMessageIndexUser2'],
-              userName1: data['userName1'],
-              userName2: data['userName2'],
-              messages: List<Message>.from(
-                (data['messages'] as List).map(
-                  (m) => Message(
-                    text: m['text'],
-                    imageUrl: m['imageUrl'],
-                    time: (m['time'] as Timestamp).toDate(),
-                    userId: m['userId'],
+              // Safely convert data with null checks
+              final Map<String, dynamic>? usersData =
+                  data['users'] as Map<String, dynamic>?;
+              final Map<String, dynamic>? lastMessageIndexData =
+                  data['lastMessageIndex'] as Map<String, dynamic>?;
+              final Map<String, dynamic>? inChatData =
+                  data['inChat'] as Map<String, dynamic>?;
+              final List<dynamic>? messagesData =
+                  data['messages'] as List<dynamic>?;
+
+              if (usersData == null ||
+                  lastMessageIndexData == null ||
+                  inChatData == null) {
+                print('Missing required data for chat ${doc.id}');
+                continue;
+              }
+
+              loadedChats.add(
+                Chat(
+                  id: doc.id,
+                  users: Map<String, String>.from(
+                    usersData.map(
+                      (key, value) =>
+                          MapEntry(key, value?.toString() ?? 'Unknown User'),
+                    ),
                   ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        // Process chats where user is user2
-        for (var doc in snapshot2.docs) {
-          final data = doc.data();
-          loadedChats.add(
-            Chat(
-              id: doc.id,
-              userId1: data['userId1'],
-              userId2: data['userId2'],
-              lastMessageIndexUser1: data['lastMessageIndexUser1'],
-              lastMessageIndexUser2: data['lastMessageIndexUser2'],
-              userName1: data['userName1'],
-              userName2: data['userName2'],
-              messages: List<Message>.from(
-                (data['messages'] as List).map(
-                  (m) => Message(
-                    text: m['text'],
-                    imageUrl: m['imageUrl'],
-                    time: (m['time'] as Timestamp).toDate(),
-                    userId: m['userId'],
+                  lastMessageIndex: Map<String, int>.from(
+                    lastMessageIndexData.map(
+                      (key, value) => MapEntry(key, value as int? ?? -1),
+                    ),
                   ),
+                  inChat: Map<String, bool>.from(
+                    inChatData.map(
+                      (key, value) => MapEntry(key, value as bool? ?? false),
+                    ),
+                  ),
+                  messages:
+                      messagesData
+                          ?.map(
+                            (m) => Message(
+                              text: m['text'] as String?,
+                              imageUrl: m['imageUrl'] as String?,
+                              time:
+                                  (m['time'] as Timestamp?)?.toDate() ??
+                                  DateTime.now(),
+                              userId: m['userId'] as String? ?? '',
+                            ),
+                          )
+                          .toList() ??
+                      [],
                 ),
-              ),
-            ),
-          );
-        }
+              );
+            }
 
-        _chats = loadedChats;
-        sort();
-        notifyListeners();
-      } catch (e) {
-        print('Error in chat listener: $e');
-      }
-    });
+            _chats = loadedChats;
+            sort();
+            notifyListeners();
+          } catch (e) {
+            print('Error in chat listener: $e');
+            // Add more detailed error information
+            print('Error details: ${e.toString()}');
+          }
+        });
   }
-  
-  // Send a new message
+
   Future<void> sendMessage(
     String chatId,
     String text, {
@@ -145,30 +141,22 @@ class ChatProvider extends ChangeNotifier {
     if (_currentUserId == null) return;
 
     try {
-      final message = Message(
-        text: text,
-        imageUrl: imageUrl,
-        time: DateTime.now(),
-        userId: _currentUserId!,
-      );
+      final message = {
+        'text': text,
+        'imageUrl': imageUrl,
+        'time':
+            Timestamp.now(), // Change this from FieldValue.serverTimestamp()
+        'userId': _currentUserId,
+      };
 
-      // Update Firestore
       await _firestore.collection('chat').doc(chatId).update({
-        'messages': FieldValue.arrayUnion([
-          {
-            'text': message.text,
-            'imageUrl': message.imageUrl,
-            'time': message.time,
-            'userId': message.userId,
-          },
-        ]),
+        'messages': FieldValue.arrayUnion([message]),
+        'lastUpdate':
+            FieldValue.serverTimestamp(), // Add this to track last update
       });
-
-      await seen(chatId);
-      sort();
-      notifyListeners();
     } catch (e) {
       print('Error sending message: $e');
+      print('Error details: ${e.toString()}');
     }
   }
 
@@ -183,43 +171,28 @@ class ChatProvider extends ChangeNotifier {
     });
   }
 
-  // Create a new chat
   Future<void> createChat(String otherUserId) async {
     if (_currentUserId == null) return;
 
-        // Helper function to get user display name
-    Future<String> getUserName(String? userId) async {
-      final userDoc = await _firestore.collection('Users').doc(userId).get();
-      return userDoc.data()?['fullName'] ?? 'Unknown User';
-    }
-
-    final user2 = await getUserName(otherUserId);
-    final user1 = await getUserName(_currentUserId);
-
     try {
+      // Get user names
+      final currentUserDoc =
+          await _firestore.collection('Users').doc(_currentUserId).get();
+      final otherUserDoc =
+          await _firestore.collection('Users').doc(otherUserId).get();
+
       final chatId = const Uuid().v4();
-      final chat = Chat(
-        id: chatId,
-        userId1: _currentUserId!,
-        userId2: otherUserId,
-        lastMessageIndexUser1: -1,
-        lastMessageIndexUser2: -1,
-        userName1: user1,
-        userName2: user2,
-        messages: [],
-      );
 
-      // Add to Firestore
-      await _firestore.collection('chat').doc(chatId).set({
-        'userId1': chat.userId1,
-        'userId2': chat.userId2,
-        'lastMessageIndexUser1': chat.lastMessageIndexUser1,
-        'lastMessageIndexUser2': chat.lastMessageIndexUser2,
+      final chatData = {
+        'users': {
+          _currentUserId!: currentUserDoc.data()?['fullName'] ?? 'Unknown User',
+          otherUserId: otherUserDoc.data()?['fullName'] ?? 'Unknown User',
+        },
+        'lastMessageIndex': {_currentUserId!: -1, otherUserId: -1},
         'messages': [],
-        'userName1': chat.userName1,
-        'userName2': chat.userName2,
-      });
+      };
 
+      await _firestore.collection('chat').doc(chatId).set(chatData);
       notifyListeners();
     } catch (e) {
       print('Error creating chat: $e');
@@ -255,27 +228,29 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // Modify seen to use Firebase
   Future<void> seen(String chatId) async {
     if (_currentUserId == null) return;
 
     try {
       final chat = _chats.firstWhere((chat) => chat.id == chatId);
-      final fieldToUpdate =
-          chat.userId1 == _currentUserId
-              ? 'lastMessageIndexUser1'
-              : 'lastMessageIndexUser2';
+      final currentLength = chat.messages.length;
+      final bool wasInChat = chat.inChat[_currentUserId!] ?? false;
 
-      await _firestore.collection('chat').doc(chatId).update({
-        fieldToUpdate: chat.messages.length - 1,
-      });
+      // Update both inChat status and lastMessageIndex when entering chat
+      if (!wasInChat) {
+        await _firestore.collection('chat').doc(chatId).update({
+          'inChat.${_currentUserId}': true,
+          'lastMessageIndex.${_currentUserId}': currentLength - 1,
+        });
 
-      // Update local state
-      if (chat.userId1 == _currentUserId) {
-        chat.lastMessageIndexUser1 = chat.messages.length - 1;
+        chat.inChat[_currentUserId!] = true;
       } else {
-        chat.lastMessageIndexUser2 = chat.messages.length - 1;
+        await _firestore.collection('chat').doc(chatId).update({
+          'lastMessageIndex.${_currentUserId}': chat.messages.length - 1,
+          'inChat.${_currentUserId}': false,
+        });
       }
+      chat.lastMessageIndex[_currentUserId!] = chat.messages.length - 1;
       notifyListeners();
     } catch (e) {
       print('Error marking messages as seen: $e');
