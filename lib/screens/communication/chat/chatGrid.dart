@@ -134,7 +134,7 @@ body: Consumer<ChatProvider>(
 }
 
 void _showCreateChatDialog(BuildContext context) {
-  final TextEditingController userIdController = TextEditingController();
+  final TextEditingController userEmailController = TextEditingController();
 
   showDialog(
     context: context,
@@ -146,10 +146,10 @@ void _showCreateChatDialog(BuildContext context) {
           style: TextStyle(color: Colors.white),
         ),
         content: TextField(
-          controller: userIdController,
+          controller: userEmailController,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            hintText: 'Enter friend\'s User ID',
+            hintText: 'Enter friend\'s Email',
             hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
             fillColor: const Color.fromARGB(255, 27, 38, 59),
@@ -171,9 +171,9 @@ void _showCreateChatDialog(BuildContext context) {
           TextButton(
             child: const Text('Create Chat', style: TextStyle(color: Colors.blue)),
             onPressed: () {
-              if (userIdController.text.isNotEmpty) {
+              if (userEmailController.text.isNotEmpty) {
                 Provider.of<ChatProvider>(context, listen: false)
-                    .createChat(userIdController.text);
+                    .createChat(userEmailController.text);
                 Navigator.of(context).pop();
               }
             },

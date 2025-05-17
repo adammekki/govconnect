@@ -17,19 +17,36 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Schedule the seen call for after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
       _scrollToBottom();
     });
     Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (Provider.of<ChatProvider>(
+              context,
+              listen: false,
+            ).isInChat(widget.chatId) &&
+            state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+    } else if (state == AppLifecycleState.resumed) {
+      Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+    }
   }
 
   @override
@@ -43,178 +60,194 @@ class _ChatPageState extends State<ChatPage> {
 
         final otherUserName = chat.getOtherUserName(widget.userId);
 
-        return Scaffold(
-          backgroundColor: const Color.fromARGB(255, 27, 38, 59),
-          appBar: AppBar(
-            backgroundColor: const Color.fromARGB(255, 51, 74, 117),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.blue),
-              onPressed: () {
-                Provider.of<ChatProvider>(
-                  context,
-                  listen: false,
-                ).seen(widget.chatId);
-                Navigator.pop(context);
-              },
-            ),
-            title: Row(
-              children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.grey[300],
-                      child: const Icon(
-                        Icons.person,
-                        size: 30,
-                        color: Colors.grey,
+        return PopScope(
+          canPop: true,
+          onPopInvoked: (bool didPop) {
+            if (didPop) {
+              Provider.of<ChatProvider>(
+                context,
+                listen: false,
+              ).seen(widget.chatId);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: const Color.fromARGB(255, 27, 38, 59),
+            appBar: AppBar(
+              backgroundColor: const Color.fromARGB(255, 51, 74, 117),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                onPressed: () {
+                  Provider.of<ChatProvider>(
+                    context,
+                    listen: false,
+                  ).seen(widget.chatId);
+                  Navigator.pop(context);
+                },
+              ),
+              title: Row(
+                children: [
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.grey[300],
+                        child: const Icon(
+                          Icons.person,
+                          size: 30,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
-                    // Online indicator
-                    if (chat.inChat[chat.getOtherUserId(widget.userId)] ??
-                        false)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: const Color.fromARGB(255, 51, 74, 117),
-                              width: 2,
+                      // Online indicator
+                      if (chat.inChat[chat.getOtherUserId(widget.userId)] ??
+                          false)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color.fromARGB(255, 51, 74, 117),
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        otherUserName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
                       ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      otherUserName,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    Text(
-                      (chat.inChat[chat.getOtherUserId(widget.userId)] ??
-                        false)
-                          ? 'In the chat'
-                          : 'Last seen recently',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                    ),
-                  ],
+                      Text(
+                        (chat.inChat[chat.getOtherUserId(widget.userId)] ??
+                                false)
+                            ? 'In the chat'
+                            : 'Last seen recently',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.phone, color: Colors.blue),
+                  onPressed: () {},
                 ),
               ],
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.phone, color: Colors.blue),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: MessagesGrid(
-                  messages: chat.messages,
-                  currentUserId: chatProvider.currentUserId!,
-                  otherUserId: chat.getOtherUserId(chatProvider.currentUserId!),
-                  lastMessageIndices: chat.lastMessageIndex,
-                  scrollController: _scrollController,
-                  inChat: chat.inChat,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.only(
-                  left: 8,
-                  right: 8,
-                  top: 8,
-                  bottom: 8, // Added bottom padding
-                ),
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 51, 74, 117),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+            body: Column(
+              children: [
+                Expanded(
+                  child: MessagesGrid(
+                    messages: chat.messages,
+                    currentUserId: chatProvider.currentUserId!,
+                    otherUserId: chat.getOtherUserId(
+                      chatProvider.currentUserId!,
+                    ),
+                    lastMessageIndices: chat.lastMessageIndex,
+                    scrollController: _scrollController,
+                    inChat: chat.inChat,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 12,
-                        ), // Added left padding for text
-                        child: TextField(
-                          controller: _messageController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: 'Type your message...',
-                            hintStyle: TextStyle(color: Colors.grey[400]),
-                            border: InputBorder.none,
-                            filled: true,
-                            fillColor: Color.fromARGB(
-                              255,
-                              41,
-                              59,
-                              94,
-                            ), // darker shade for text input
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: const BorderSide(
-                                color: Colors.blue,
-                                width: 1,
+                Container(
+                  padding: const EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                    top: 8,
+                    bottom: 8, // Added bottom padding
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 51, 74, 117),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            left: 12,
+                          ), // Added left padding for text
+                          child: TextField(
+                            controller: _messageController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Type your message...',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: InputBorder.none,
+                              filled: true,
+                              fillColor: Color.fromARGB(
+                                255,
+                                41,
+                                59,
+                                94,
+                              ), // darker shade for text input
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: const BorderSide(
+                                  color: Colors.blue,
+                                  width: 1,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.grid_view, color: Colors.blue),
-                      onPressed: () {
-                        _showImageUrlDialog(context, chatProvider);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send, color: Colors.blue),
-                      onPressed: () {
-                        if (_messageController.text.isNotEmpty) {
-                          chatProvider.sendMessage(
-                            widget.chatId,
-                            _messageController.text,
-                          );
-                          _messageController.clear();
+                      IconButton(
+                        icon: const Icon(Icons.grid_view, color: Colors.blue),
+                        onPressed: () {
+                          _showImageUrlDialog(context, chatProvider);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: Colors.blue),
+                        onPressed: () {
+                          if (_messageController.text.isNotEmpty) {
+                            chatProvider.sendMessage(
+                              widget.chatId,
+                              _messageController.text,
+                            );
+                            _messageController.clear();
 
-                          // Ensure scroll happens after the message is added and layout is complete
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (_scrollController.hasClients) {
-                              _scrollController.animateTo(
-                                _scrollController.position.maxScrollExtent,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeOut,
-                              );
-                            }
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                            // Ensure scroll happens after the message is added and layout is complete
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (_scrollController.hasClients) {
+                                _scrollController.animateTo(
+                                  _scrollController.position.maxScrollExtent,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -284,6 +317,8 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

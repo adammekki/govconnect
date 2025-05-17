@@ -17,6 +17,8 @@ class ChatProvider extends ChangeNotifier {
   List<Chat> get chats => _chats;
   String? get currentUserId => _currentUserId;
   bool get isLoading => _isLoading;
+  bool isInChat(String chatId) =>
+      getChatById(chatId)?.inChat[_currentUserId!] ?? false;
 
   // Load current user ID from SharedPreferences
   Future<void> _loadCurrentUserId() async {
@@ -171,25 +173,75 @@ class ChatProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> createChat(String otherUserId) async {
+  Future<void> createChat(String otherUserEmail) async {
     if (_currentUserId == null) return;
 
     try {
-      // Get user names
-      final currentUserDoc =
-          await _firestore.collection('Users').doc(_currentUserId).get();
-      final otherUserDoc =
-          await _firestore.collection('Users').doc(otherUserId).get();
+      // Normalize emails to lowercase to handle case sensitivity
+      final normalizedOtherEmail = otherUserEmail.trim().toLowerCase();
+
+      DocumentSnapshot? currentUserDoc;
+      DocumentSnapshot? otherUserDoc;
+      String? otherUserId;
+
+      // First try direct queries
+      // Try to find current user
+      final currentUserQuery =
+          await _firestore
+              .collection('Users')
+              .doc(_currentUserId!)
+              .get();
+
+        if (currentUserQuery.exists) {
+          currentUserDoc = currentUserQuery;
+        }
+
+      // Try to find other user
+        final otherUserQuery =
+            await _firestore
+                .collection('Users')
+                .where('email', isEqualTo: normalizedOtherEmail)
+                .get();
+
+        if (otherUserQuery.docs.isNotEmpty) {
+          otherUserDoc = otherUserQuery.docs.first;
+          otherUserId = otherUserDoc.id;
+        }
+
+      
+      // Check if we found both users
+      if (
+          currentUserDoc == null ||
+          otherUserDoc == null ||
+          otherUserId == null) {
+        return;
+      }
+
+      // // Check if chat already exists
+      // final existingChatQuery =
+      //     await _firestore
+      //         .collection('chat')
+      //         .where('users.$_currentUserId', isGreaterThan: null)
+      //         .where('users.$otherUserId', isGreaterThan: null)
+      //         .get();
+
+      // if (existingChatQuery.docs.isNotEmpty) {
+      //   return;
+      // }
 
       final chatId = const Uuid().v4();
+      final currentUserData = currentUserDoc.data() as Map<String, dynamic>?;
+      final otherUserData = otherUserDoc.data() as Map<String, dynamic>?;
 
       final chatData = {
         'users': {
-          _currentUserId!: currentUserDoc.data()?['fullName'] ?? 'Unknown User',
-          otherUserId: otherUserDoc.data()?['fullName'] ?? 'Unknown User',
+          _currentUserId: currentUserData?['fullName'] ?? 'Unknown User',
+          otherUserId: otherUserData?['fullName'] ?? 'Unknown User',
         },
-        'lastMessageIndex': {_currentUserId!: -1, otherUserId: -1},
+        'lastMessageIndex': {_currentUserId: -1, otherUserId: -1},
+        'inChat': {_currentUserId: false, otherUserId: false},
         'messages': [],
+        'lastUpdate': FieldValue.serverTimestamp(),
       };
 
       await _firestore.collection('chat').doc(chatId).set(chatData);
