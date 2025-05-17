@@ -11,45 +11,43 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
-
   final passwordController = TextEditingController();
   var hidePass = true;
 
   void signUserIn() async {
-    try{
+    try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: emailController.text,
-      password: passwordController.text,
+        email: emailController.text,
+        password: passwordController.text,
       );
 
       await FirebaseAuth.instance.currentUser?.reload();
       final user = FirebaseAuth.instance.currentUser;
-    
+
       // Check verification status and navigate accordingly
       if (user != null) {
         if (user.emailVerified) {
           // User is verified, navigate to success screen
           Navigator.pushNamedAndRemoveUntil(
-            context, 
-            '/login_success', 
-            (route) => false
+            context,
+            '/login_success',
+            (route) => false,
           );
         } else {
           // User is not verified, navigate to verification screen
           Navigator.pushNamedAndRemoveUntil(
-            context, 
-            '/email_verification', 
-            (route) => false
+            context,
+            '/email_verification',
+            (route) => false,
           );
         }
       }
-
     } on FirebaseAuthException catch (e) {
       showErrorMessage(e.code);
     }
   }
 
-  void showErrorMessage(String message){
+  void showErrorMessage(String message) {
     showDialog(
       context: context,
       builder: (context) {
@@ -81,122 +79,125 @@ class _LoginScreenState extends State<LoginScreen> {
           onPressed: () {},
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Logo
-            const SizedBox(height: 20),
-            Center(
-              child: Column(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              Center(
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.account_balance,
+                      size: 60,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'GovConnect',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 60),
+
+              // Email field
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.account_balance,
-                    size: 60,
-                    color: Colors.white,
+                  const Text(
+                    'Email',
+                    style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'GovConnect',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your email',
+                    ),
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 60),
+              const SizedBox(height: 20),
 
-            // Email field
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Email',
-                  style: TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your email',
+              // Password field
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Password',
+                    style: TextStyle(color: Colors.white),
                   ),
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Password field
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Password',
-                  style: TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Enter your password',
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.visibility_off),
-                      onPressed: () {
-                        setState( () {
-                          hidePass = !hidePass;
-                        });
-                      },
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Enter your password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          hidePass ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            hidePass = !hidePass;
+                          });
+                        },
+                      ),
                     ),
-                  ), 
-                  controller: passwordController,
-                  obscureText: hidePass,
-                ),
-              ],
-            ),
-            
-            const Spacer(),
-            
-            // Sign In button
-            ElevatedButton(
-              onPressed: signUserIn,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1C2F41),
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white),
+                    controller: passwordController,
+                    obscureText: hidePass,
+                  ),
+                ],
               ),
-              child: const Text('Sign In'),
-            ),
-            const SizedBox(height: 20),
-            
-            // Don't have account
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Don\'t have an account? ',
-                  style: TextStyle(color: Colors.white70),
+
+              const SizedBox(height: 40),
+
+              // Sign In button
+              ElevatedButton(
+                onPressed: signUserIn,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1C2F41),
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignupScreen()),
-                    );
-                  },
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                child: const Text('Sign In'),
+              ),
+              const SizedBox(height: 20),
+
+              // Don't have account
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Don\'t have an account? ',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignupScreen()),
+                      );
+                    },
+                    child: const Text(
+                      'Create Account',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

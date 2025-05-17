@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:govconnect/screens/edit_profile_screen.dart';
+import 'package:govconnect/screens/profile_screen.dart';
+import 'package:govconnect/screens/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-
 
 import 'package:govconnect/models/problem_report.dart';
 //providers
@@ -125,6 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
         '/announcements': (context) => AnnouncementsScreen(),
         '/notifications': (context) => NotificationsScreen(),
         '/advertisements': (context) =>  AdvertisementsScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/editProfile': (context) => const EditProfileScreen(),
+        '/settings': (context) => const SettingsScreen(),
       },
     );
   }

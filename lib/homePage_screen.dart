@@ -6,6 +6,7 @@ import 'package:govconnect/screens/emergencies/emergency.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:govconnect/screens/problems/problems.dart';
 import 'package:govconnect/screens/problems/report_problem.dart';
+import 'package:govconnect/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/notification_provider.dart';
 
@@ -91,6 +92,17 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                );
+              },
+              icon: const Icon(Icons.person),
+              label: const Text('View Profile'),
+            ),
+            const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
