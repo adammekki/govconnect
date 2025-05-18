@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'package:govconnect/screens/communication/chat/chatList.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math';
 
 class ChatProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -36,6 +36,20 @@ class ChatProvider extends ChangeNotifier {
       print('Error loading current user ID: $e');
       _currentUserId = null;
     }
+  }
+
+  // get user number
+  Future<String> getUserNumber(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        return data?['phoneNumber'] ?? 0;
+      }
+    } catch (e) {
+      print('Error getting user number: $e');
+    }
+    return  "";
   }
 
   StreamSubscription<QuerySnapshot>? _chatSubscription;
@@ -187,47 +201,30 @@ class ChatProvider extends ChangeNotifier {
       // First try direct queries
       // Try to find current user
       final currentUserQuery =
-          await _firestore
-              .collection('Users')
-              .doc(_currentUserId!)
-              .get();
+          await _firestore.collection('Users').doc(_currentUserId!).get();
 
-        if (currentUserQuery.exists) {
-          currentUserDoc = currentUserQuery;
-        }
+      if (currentUserQuery.exists) {
+        currentUserDoc = currentUserQuery;
+      }
 
       // Try to find other user
-        final otherUserQuery =
-            await _firestore
-                .collection('Users')
-                .where('email', isEqualTo: normalizedOtherEmail)
-                .get();
+      final otherUserQuery =
+          await _firestore
+              .collection('Users')
+              .where('email', isEqualTo: normalizedOtherEmail)
+              .get();
 
-        if (otherUserQuery.docs.isNotEmpty) {
-          otherUserDoc = otherUserQuery.docs.first;
-          otherUserId = otherUserDoc.id;
-        }
+      if (otherUserQuery.docs.isNotEmpty) {
+        otherUserDoc = otherUserQuery.docs.first;
+        otherUserId = otherUserDoc.id;
+      }
 
-      
       // Check if we found both users
-      if (
-          currentUserDoc == null ||
+      if (currentUserDoc == null ||
           otherUserDoc == null ||
           otherUserId == null) {
         return;
       }
-
-      // // Check if chat already exists
-      // final existingChatQuery =
-      //     await _firestore
-      //         .collection('chat')
-      //         .where('users.$_currentUserId', isGreaterThan: null)
-      //         .where('users.$otherUserId', isGreaterThan: null)
-      //         .get();
-
-      // if (existingChatQuery.docs.isNotEmpty) {
-      //   return;
-      // }
 
       final chatId = const Uuid().v4();
       final currentUserData = currentUserDoc.data() as Map<String, dynamic>?;
@@ -306,6 +303,82 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error marking messages as seen: $e');
+    }
+  }
+
+  // Add this method to the ChatProvider class
+  Future<String> createRandomGovernmentChat() async {
+    if (_currentUserId == null) return "";
+
+    try {
+      // Get all government users
+      final govUsersQuery =
+          await _firestore
+              .collection('Users')
+              .where('role', isEqualTo: 'government')
+              .get();
+
+      if (govUsersQuery.docs.isEmpty) {
+        print('No government officials found');
+        return "";
+      }
+
+      // Pick a random government user
+      final random = Random();
+      var randomGovUser = govUsersQuery.docs[random.nextInt(govUsersQuery.docs.length)];
+      final govUserId = randomGovUser.id;
+
+      // Don't create chat with self
+      if (govUserId == _currentUserId && govUsersQuery.docs.length > 1) {
+        while(true) {
+          final newRandomGovUser = govUsersQuery.docs[random.nextInt(govUsersQuery.docs.length)];
+          if (newRandomGovUser.id != _currentUserId) {
+            randomGovUser = newRandomGovUser;
+            break;
+          }
+        }
+      }else if(govUsersQuery.docs.length == 1){
+        print('No other government officials found');
+        return "";
+      }
+
+      // Get current user doc
+      final currentUserDoc =
+          await _firestore.collection('Users').doc(_currentUserId).get();
+
+      // Create new chat
+      final chatId = const Uuid().v4();
+      final chatData = {
+        'users': {
+          _currentUserId: currentUserDoc.data()?['fullName']+" (Citizen)" ?? 'Unknown User',
+          govUserId: randomGovUser.data()['fullName']+" (Government official)" ?? 'Unknown User',
+        },
+        'lastMessageIndex': {_currentUserId: 1, govUserId: 1},
+        'inChat': {_currentUserId: false, govUserId: false},
+        'messages': [
+          {
+            'text': 'This is an automated message, will get back to you as soon as possible.',
+            'time': Timestamp.now(),
+            'userId':govUserId,
+            'imageUrl': null,
+          },
+          {
+            'text': 'How may I assist you today?',
+            'time': Timestamp.now(),
+            'userId':govUserId,
+            'imageUrl': null,
+          }
+        ],
+        'lastUpdate': FieldValue.serverTimestamp(),
+      };
+
+      await _firestore.collection('chat').doc(chatId).set(chatData);
+      notifyListeners();
+      return chatId;
+    } catch (e) {
+      print('Error creating random government chat: $e');
+      print('Error details: ${e.toString()}');
+      return "";
     }
   }
 }
