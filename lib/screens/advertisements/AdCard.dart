@@ -14,6 +14,7 @@ class AdCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
+      color:Color(0xFF131E2F) ,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -24,7 +25,7 @@ class AdCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.grey[300],
+                  backgroundColor:Color(0xFF131E2F) ,
                   child: Icon(Icons.business, color: Colors.grey[600]),
                 ),
                 const SizedBox(width: 12),
@@ -48,7 +49,8 @@ class AdCard extends StatelessWidget {
                               snapshot.data?.data() as Map<String, dynamic>?;
                           return Text(
                             userData?['displayName'] ?? 'Advertiser',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
+                            ,
                           );
                         },
                       ),
@@ -57,13 +59,13 @@ class AdCard extends StatelessWidget {
                           Icon(
                             Icons.local_offer,
                             size: 12,
-                            color: Colors.amber[800],
+                            color: const Color.fromARGB(255, 0, 34, 255),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'Advertisement',
                             style: TextStyle(
-                              color: Colors.amber[800],
+                              color: const Color.fromARGB(255, 0, 34, 255),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -109,16 +111,22 @@ class AdCard extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: Colors.white,
+                    
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(ad.description),
+                Text(ad.description,
+                style: const TextStyle(
+          color: Colors.white, // Changed to white
+        ),),
+               
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
                       _formatTimestamp(ad.createdAt),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: TextStyle(color: Color(0xFF7AA2F7), fontSize: 12),
                     ),
                   ],
                 ),

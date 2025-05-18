@@ -23,11 +23,13 @@ class AnnouncementCard extends StatefulWidget {
 class _AnnouncementCardState extends State<AnnouncementCard> {
   bool _isCurrentUserCreator = false;
   bool _isGovernmentUser = false;
+  String? _creatorFullName;
 
   @override
   void initState() {
     super.initState();
     _checkUserStatus();
+    _fetchCreatorFullName();
   }
 
   void _checkUserStatus() async {
@@ -35,58 +37,68 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
     if (currentUser != null) {
       // Check if current user is the creator
       if (currentUser.uid == widget.announcement.createdBy) {
-        setState(() {
-          _isCurrentUserCreator = true;
-        });
+        if (mounted) {
+          setState(() {
+            _isCurrentUserCreator = true;
+          });
+        }
       }
       // Check if current user is a government user
-      final doc =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(currentUser.uid)
-              .get();
-      final data = doc.data();
-      if (data != null &&
-          (data['role'] == 'government' || data['isGovernment'] == true)) {
-        setState(() {
-          _isGovernmentUser = true;
-        });
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(currentUser.uid)
+            .get();
+        final data = doc.data();
+        if (data != null &&
+            (data['role'] == 'government' || data['isGovernment'] == true)) {
+          if (mounted) {
+            setState(() {
+              _isGovernmentUser = true;
+            });
+          }
+        }
+      } catch (e) {
+        // Optionally handle error
       }
+    }
+  }
+
+  Future<void> _fetchCreatorFullName() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(widget.announcement.createdBy)
+          .get();
+      final data = doc.data();
+      if (data != null && data['fullName'] != null) {
+        if (mounted) {
+          setState(() {
+            _creatorFullName = data['fullName'];
+          });
+        }
+      }
+    } catch (e) {
+      // Optionally handle error
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // ignore: unused_local_variable
-    const primaryColor = Color(
-      0xFF172B4D,
-    ); // Dark blue for app bar and main elements
-    // ignore: unused_local_variable
-    const secondaryColor = Color(
-      0xFF3B5998,
-    ); // Slightly lighter blue for buttons
-    // ignore: unused_local_variable
-    const backgroundColor = Color(0xFF0A1929); // Very dark blue for background
-    // ignore: unused_local_variable
-    const cardColor = Color(0xFF1C3A5F); // Card background color
-    // ignore: unused_local_variable
-    const accentColor = Color(
-      0xFF4D8DFF,
-    ); // Blue accent color for interactive elements
-    // ignore: unused_local_variable
+    const primaryColor = Color(0xFF131E2F);
+    const secondaryColor = Color(0xFF24283B);
+    const backgroundColor = Color(0xFF131E2F);
+    const cardColor = Color(0xFF131E2F);
+    const accentColor = Color(0xFF7AA2F7);
     const textColorPrimary = Colors.white;
-    // ignore: unused_local_variable
-    const textColorSecondary = Color(
-      0xFFAFBFD2,
-    ); // Light gray-blue for secondary text
+    const textColorSecondary = Color.fromARGB(255, 255, 255, 255);
     final theme = Theme.of(context);
-    // ignore: unused_local_variable
-    final currentUser = FirebaseAuth.instance.currentUser;
     final timeAgo = _formatTimeAgo(widget.announcement.createdAt);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       elevation: 0,
+      color: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: theme.dividerColor.withOpacity(0.2), width: 1),
@@ -101,7 +113,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               children: [
                 const CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.blue,
+                  backgroundColor: accentColor,
                   child: Icon(Icons.account_balance, color: Colors.white),
                 ),
                 const SizedBox(width: 12),
@@ -110,22 +122,23 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Bristol Government',
+                        _creatorFullName ?? 'Loading...',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: textColorPrimary,
                         ),
                       ),
                       Text(
                         timeAgo,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
+                          color: textColorSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.more_vert),
+                  icon: const Icon(Icons.more_vert, color: textColorSecondary),
                   onPressed: () => _showOptionsMenu(context),
                 ),
               ],
@@ -138,6 +151,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               widget.announcement.title,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: textColorPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -145,7 +159,9 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               widget.showFullContent
                   ? widget.announcement.description
                   : _truncateDescription(widget.announcement.description),
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: textColorPrimary,
+              ),
             ),
 
             // "Read more" button if content is truncated
@@ -153,7 +169,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                 widget.announcement.description.length > 150) ...[
               TextButton(
                 onPressed: () => _showFullAnnouncement(context),
-                child: const Text('Read more'),
+                child: const Text('Read more', style: TextStyle(color: accentColor)),
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
@@ -167,11 +183,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: GestureDetector(
-                  onTap:
-                      () => _showFullScreenImage(
-                        context,
-                        widget.announcement.mediaUrl!,
-                      ),
+                  onTap: () => _showFullScreenImage(
+                    context,
+                    widget.announcement.mediaUrl!,
+                  ),
                   child: Image.network(
                     widget.announcement.mediaUrl!,
                     width: double.infinity,
@@ -181,14 +196,14 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                       if (loadingProgress == null) return child;
                       return Container(
                         height: 200,
-                        color: Colors.grey[200],
+                        color: secondaryColor,
                         child: Center(
                           child: CircularProgressIndicator(
-                            value:
-                                loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
+                            color: accentColor,
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
                           ),
                         ),
                       );
@@ -196,8 +211,8 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 200,
-                        color: Colors.grey[200],
-                        child: const Center(child: Icon(Icons.broken_image)),
+                        color: secondaryColor,
+                        child: const Center(child: Icon(Icons.broken_image, color: textColorSecondary)),
                       );
                     },
                   ),
@@ -215,25 +230,27 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.mode_comment_outlined),
+                        icon: const Icon(Icons.mode_comment_outlined, color: textColorSecondary),
                         onPressed: () => _showCommentDialog(context),
                       ),
                       Text(
                         widget.announcement.comments.length.toString(),
-                        style: theme.textTheme.bodyMedium,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: textColorSecondary,
+                        ),
                       ),
                     ],
                   ),
 
                   // Share button
                   IconButton(
-                    icon: const Icon(Icons.share),
+                    icon: const Icon(Icons.share, color: textColorSecondary),
                     onPressed: () => _shareAnnouncement(),
                   ),
 
                   // Like button (optional)
                   IconButton(
-                    icon: const Icon(Icons.favorite_border),
+                    icon: const Icon(Icons.favorite_border, color: textColorSecondary),
                     onPressed: () {}, // Implement like functionality if needed
                   ),
                 ],
@@ -242,7 +259,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
 
             // Comments preview
             if (widget.announcement.comments.isNotEmpty) ...[
-              const Divider(height: 24),
+              const Divider(height: 24, color: textColorSecondary),
               Column(
                 children: [
                   for (final comment in widget.announcement.comments.take(2))
@@ -253,7 +270,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                       child: Text(
                         'View all ${widget.announcement.comments.length} comments',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.primaryColor,
+                          color: accentColor,
                         ),
                       ),
                     ),
@@ -291,18 +308,24 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   }
 
   void _showOptionsMenu(BuildContext context) {
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFA9B1D6);
+    const accentColor = Color(0xFF7AA2F7);
+    const cardColor = Color(0xFF0E1621);
+
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: cardColor,
       builder: (context) {
         return Wrap(
           children: [
             if (_isCurrentUserCreator)
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Edit announcement'),
+                leading: const Icon(Icons.edit, color: textColorSecondary),
+                title: const Text('Edit announcement', style: TextStyle(color: textColorPrimary)),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditDialog(context);
@@ -310,24 +333,24 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               ),
             if (_isCurrentUserCreator)
               ListTile(
-                leading: const Icon(Icons.delete),
-                title: const Text('Delete announcement'),
+                leading: const Icon(Icons.delete, color: textColorSecondary),
+                title: const Text('Delete announcement', style: TextStyle(color: textColorPrimary)),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmDelete(context);
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.flag),
-              title: const Text('Report post'),
+              leading: const Icon(Icons.flag, color: textColorSecondary),
+              title: const Text('Report post', style: TextStyle(color: textColorPrimary)),
               onTap: () {
                 Navigator.pop(context);
                 _showReportDialog(context);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.close),
-              title: const Text('Cancel'),
+              leading: const Icon(Icons.close, color: textColorSecondary),
+              title: const Text('Cancel', style: TextStyle(color: textColorPrimary)),
               onTap: () => Navigator.pop(context),
             ),
           ],
@@ -337,20 +360,27 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   }
 
   void _showFullAnnouncement(BuildContext context) {
+    const primaryColor = Color.fromARGB(255, 26, 27, 38);
+    const backgroundColor = Color(0xFF0E1621);
+    const textColorPrimary = Colors.white;
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => Scaffold(
-              appBar: AppBar(),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: AnnouncementCard(
-                  announcement: widget.announcement,
-                  showFullContent: true,
-                ),
-              ),
+        builder: (context) => Scaffold(
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            backgroundColor: primaryColor,
+            iconTheme: const IconThemeData(color: textColorPrimary),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: AnnouncementCard(
+              announcement: widget.announcement,
+              showFullContent: true,
             ),
+          ),
+        ),
       ),
     );
   }
@@ -359,29 +389,35 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => Scaffold(
-              backgroundColor: Colors.black,
-              appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                iconTheme: const IconThemeData(color: Colors.white),
-              ),
-              body: Center(
-                child: InteractiveViewer(child: Image.network(imageUrl)),
-              ),
-            ),
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Center(
+            child: InteractiveViewer(child: Image.network(imageUrl)),
+          ),
+        ),
       ),
     );
   }
 
   void _showCommentDialog(BuildContext context) {
+    const cardColor = Color(0xFF1A1B26);
+    const accentColor = Color(0xFF7AA2F7);
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFA9B1D6);
+    const secondaryColor = Color(0xFF24283B);
+
     final commentController = TextEditingController();
     final isAnonymous = ValueNotifier(false);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: cardColor,
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -394,18 +430,19 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const CircleAvatar(radius: 20, child: Icon(Icons.person)),
+                    const CircleAvatar(radius: 20, backgroundColor: accentColor, child: Icon(Icons.person, color: textColorPrimary)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: ValueListenableBuilder<bool>(
                         valueListenable: isAnonymous,
                         builder: (context, value, child) {
                           return CheckboxListTile(
-                            title: const Text('Post anonymously'),
+                            title: const Text('Post anonymously', style: TextStyle(color: textColorPrimary)),
                             value: value,
                             onChanged: (v) => isAnonymous.value = v!,
                             contentPadding: EdgeInsets.zero,
                             controlAffinity: ListTileControlAffinity.leading,
+                            activeColor: accentColor,
                           );
                         },
                       ),
@@ -417,13 +454,15 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
                   controller: commentController,
+                  style: const TextStyle(color: textColorPrimary),
                   decoration: InputDecoration(
                     hintText: 'Write your comment...',
+                    hintStyle: const TextStyle(color: textColorSecondary),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                     suffixIcon: IconButton(
-                      icon: const Icon(Icons.send),
+                      icon: const Icon(Icons.send, color: accentColor),
                       onPressed: () async {
                         if (commentController.text.trim().isEmpty) return;
 
@@ -442,11 +481,14 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Error posting comment: $e'),
+                              backgroundColor: cardColor,
                             ),
                           );
                         }
                       },
                     ),
+                    fillColor: secondaryColor,
+                    filled: true,
                   ),
                   maxLines: 3,
                 ),
@@ -460,9 +502,15 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   }
 
   void _showAllComments(BuildContext context) {
+    const cardColor = Color(0xFF1A1B26);
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFA9B1D6);
+    const accentColor = Color(0xFF7AA2F7);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: cardColor,
       builder: (context) {
         return DraggableScrollableSheet(
           expand: false,
@@ -476,15 +524,15 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Comments'),
+                      const Text('Comments', style: TextStyle(color: textColorPrimary, fontWeight: FontWeight.bold)),
                       IconButton(
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(Icons.close, color: textColorSecondary),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: textColorSecondary),
                 Expanded(
                   child: ListView.builder(
                     controller: scrollController,
@@ -511,6 +559,12 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   }
 
   void _showEditDialog(BuildContext context) {
+    const cardColor = Color(0xFF1A1B26);
+    const accentColor = Color(0xFF7AA2F7);
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFA9B1D6);
+    const secondaryColor = Color(0xFF24283B);
+
     final titleController = TextEditingController(
       text: widget.announcement.title,
     );
@@ -530,41 +584,53 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Edit Announcement'),
+          backgroundColor: cardColor,
+          title: const Text('Edit Announcement', style: TextStyle(color: textColorPrimary)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: titleController,
+                  style: const TextStyle(color: textColorPrimary),
                   decoration: const InputDecoration(
                     hintText: 'Title',
+                    hintStyle: TextStyle(color: textColorSecondary),
                     border: OutlineInputBorder(),
+                    fillColor: secondaryColor,
+                    filled: true,
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: descriptionController,
+                  style: const TextStyle(color: textColorPrimary),
                   decoration: const InputDecoration(
                     hintText: 'Description',
+                    hintStyle: TextStyle(color: textColorSecondary),
                     border: OutlineInputBorder(),
+                    fillColor: secondaryColor,
+                    filled: true,
                   ),
                   maxLines: 4,
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
+                  dropdownColor: secondaryColor,
+                  style: const TextStyle(color: textColorPrimary),
                   decoration: const InputDecoration(
                     labelText: 'Category',
+                    labelStyle: TextStyle(color: textColorSecondary),
                     border: OutlineInputBorder(),
+                    fillColor: secondaryColor,
+                    filled: true,
                   ),
-                  items:
-                      categories
-                          .map(
-                            (cat) =>
-                                DropdownMenuItem(value: cat, child: Text(cat)),
-                          )
-                          .toList(),
+                  items: categories
+                      .map(
+                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
+                      )
+                      .toList(),
                   onChanged: (value) {
                     if (value != null) {
                       selectedCategory = value;
@@ -577,7 +643,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: accentColor)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -593,15 +659,22 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                   );
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Announcement updated!')),
+                    const SnackBar(
+                      content: Text('Announcement updated!'),
+                      backgroundColor: cardColor,
+                    ),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  ).showSnackBar(SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: cardColor,
+                  ));
                 }
               },
-              child: const Text('Save'),
+              style: ElevatedButton.styleFrom(backgroundColor: accentColor),
+              child: const Text('Save', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -610,46 +683,77 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   }
 
   void _confirmDelete(BuildContext context) {
+    const cardColor = Color(0xFF1A1B26);
+    const accentColor = Color(0xFF7AA2F7);
+    const textColorPrimary = Colors.white;
+
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Delete Announcement'),
-            content: const Text(
-              'Are you sure you want to delete this announcement?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    await Provider.of<AnnouncementsProvider>(
-                      context,
-                      listen: false,
-                    ).deleteAnnouncement(widget.announcement.id);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Announcement deleted!')),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                  }
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Delete'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: cardColor,
+        title: const Text('Delete Announcement', style: TextStyle(color: textColorPrimary)),
+        content: const Text(
+          'Are you sure you want to delete this announcement?',
+          style: TextStyle(color: textColorPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: accentColor)),
           ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await Provider.of<AnnouncementsProvider>(
+                  context,
+                  listen: false,
+                ).deleteAnnouncement(widget.announcement.id);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Announcement deleted!'),
+                    backgroundColor: cardColor,
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(
+                  content: Text('Error: $e'),
+                  backgroundColor: cardColor,
+                ));
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 
   void _showReportDialog(BuildContext context) {
-    // Implement report functionality if needed
+    const cardColor = Color(0xFF1A1B26);
+    const textColorPrimary = Colors.white;
+    const accentColor = Color(0xFF7AA2F7);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: cardColor,
+        title: const Text('Report Post', style: TextStyle(color: textColorPrimary)),
+        content: const Text(
+          'Thank you for helping us keep the community safe. This feature is coming soon.',
+          style: TextStyle(color: textColorPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: accentColor)),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -662,6 +766,9 @@ class CommentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final timeAgo = _formatTimeAgo(comment.createdAt);
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFA9B1D6);
+    const accentColor = Color(0xFF7AA2F7);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -670,10 +777,11 @@ class CommentTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: theme.colorScheme.secondaryContainer,
+            backgroundColor: accentColor.withOpacity(0.3),
             child: Icon(
               comment.anonymous ? Icons.visibility_off : Icons.person,
               size: 18,
+              color: accentColor,
             ),
           ),
           const SizedBox(width: 12),
@@ -685,14 +793,15 @@ class CommentTile extends StatelessWidget {
                   comment.anonymous ? 'Anonymous' : 'Community Member',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: textColorPrimary,
                   ),
                 ),
-                Text(comment.content),
+                Text(comment.content, style: const TextStyle(color: textColorPrimary)),
                 const SizedBox(height: 4),
                 Text(
                   timeAgo,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
+                    color: textColorSecondary,
                   ),
                 ),
               ],

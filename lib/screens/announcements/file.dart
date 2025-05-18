@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:govconnect/screens/announcements/announcementCard.dart';
 import 'package:govconnect/screens/announcements/announcementProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:govconnect/components/bottombar.dart'; // Import your bottom bar
 import 'package:govconnect/components/header.dart'; // Import your header
 import 'package:govconnect/components/drawer.dart'; // Import your drawer
@@ -16,13 +18,39 @@ class AnnouncementsScreen extends StatefulWidget {
 
 class _AnnouncementsFeedState extends State<AnnouncementsScreen> {
   int _currentBottomNavIndex = 0;
+  String? _userRole;
+  bool _loadingRole = true;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<AnnouncementsProvider>(context, listen: false).fetchAnnouncements();
+      await _getUserRole(); // Fetch user role
     });
+  }
+
+  Future<void> _getUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          _userRole = userDoc['role'];
+          _loadingRole = false;
+        });
+      } else {
+        setState(() {
+          _userRole = null;
+          _loadingRole = false;
+        });
+      }
+    } else {
+      setState(() {
+        _userRole = null;
+        _loadingRole = false;
+      });
+    }
   }
 
   void _onBottomNavTap(int index) {
@@ -35,11 +63,9 @@ class _AnnouncementsFeedState extends State<AnnouncementsScreen> {
   @override
   Widget build(BuildContext context) {
     final announcementsProvider = Provider.of<AnnouncementsProvider>(context);
-    final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      appBar: AppHeader(
-      ),
+      appBar: AppHeader(),
       drawer: const AppDrawer(),
       body: announcementsProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -48,8 +74,7 @@ class _AnnouncementsFeedState extends State<AnnouncementsScreen> {
               : ListView.builder(
                   itemCount: announcementsProvider.announcements.length,
                   itemBuilder: (context, index) {
-                    final announcement =
-                        announcementsProvider.announcements[index];
+                    final announcement = announcementsProvider.announcements[index];
                     return AnnouncementCard(announcement: announcement);
                   },
                 ),
@@ -57,11 +82,11 @@ class _AnnouncementsFeedState extends State<AnnouncementsScreen> {
         currentIndex: _currentBottomNavIndex,
         onTap: _onBottomNavTap,
       ),
-      floatingActionButton: currentUser != null
+      floatingActionButton: _userRole == 'government'
           ? FloatingActionButton(
               onPressed: () => _showCreateAnnouncementDialog(context),
               child: const Icon(Icons.add),
-              backgroundColor: Colors.blue, // Match your theme
+              backgroundColor: Colors.blue,
             )
           : null,
     );
