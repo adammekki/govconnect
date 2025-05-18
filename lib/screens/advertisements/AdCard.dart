@@ -14,7 +14,7 @@ class AdCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
-      color:Color(0xFF131E2F) ,
+      color: Color(0xFF131E2F),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -25,7 +25,7 @@ class AdCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor:Color(0xFF131E2F) ,
+                  backgroundColor: Color(0xFF131E2F),
                   child: Icon(Icons.business, color: Colors.grey[600]),
                 ),
                 const SizedBox(width: 12),
@@ -36,21 +36,27 @@ class AdCard extends StatelessWidget {
                       FutureBuilder<DocumentSnapshot>(
                         future:
                             FirebaseFirestore.instance
-                                .collection('users')
+                                .collection('Users')
                                 .doc(ad.postedBy)
                                 .get(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const Text('Loading...');
+                            return const Text(
+                              'Loading...',
+                              style: TextStyle(color: Colors.white),
+                            );
                           }
-
                           final userData =
                               snapshot.data?.data() as Map<String, dynamic>?;
                           return Text(
-                            userData?['displayName'] ?? 'Advertiser',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
-                            ,
+                            userData?['fullName'] ??
+                                userData?['displayName'] ??
+                                'Advertiser',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           );
                         },
                       ),
@@ -112,15 +118,16 @@ class AdCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: Colors.white,
-                    
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(ad.description,
-                style: const TextStyle(
-          color: Colors.white, // Changed to white
-        ),),
-               
+                Text(
+                  ad.description,
+                  style: const TextStyle(
+                    color: Colors.white, // Changed to white
+                  ),
+                ),
+
                 const SizedBox(height: 8),
                 Row(
                   children: [

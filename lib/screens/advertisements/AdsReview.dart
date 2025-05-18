@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Ads.dart';
@@ -12,6 +13,27 @@ class AdReviewScreen extends StatefulWidget {
 
 class _AdReviewScreenState extends State<AdReviewScreen> {
   bool _isLoading = false;
+  String? _userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserRole();
+  }
+
+  Future<void> _fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        _userRole = doc.data()?['role'];
+      });
+    }
+  }
 
   Future<void> _updateAdStatus(String adId, bool approved) async {
     setState(() {
@@ -127,7 +149,9 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         FutureBuilder<DocumentSnapshot>(
                                           future:
                                               FirebaseFirestore.instance
-                                                  .collection('users')
+                                                  .collection(
+                                                    'Users',
+                                                  ) // Use 'Users' with capital U if that's your collection
                                                   .doc(ad.postedBy)
                                                   .get(),
                                           builder: (context, userSnapshot) {
@@ -135,13 +159,12 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                                 ConnectionState.waiting) {
                                               return const Text('Loading...');
                                             }
-
                                             final userData =
                                                 userSnapshot.data?.data()
                                                     as Map<String, dynamic>?;
-
                                             return Text(
-                                              userData?['displayName'] ??
+                                              userData?['fullName'] ??
+                                                  userData?['displayName'] ??
                                                   'Anonymous User',
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
@@ -223,38 +246,41 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                             ),
 
                             // Action buttons
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed:
-                                          () => _updateAdStatus(ad.id, true),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.deepPurple[900],
-                                        foregroundColor: Colors.white,
+                            if (_userRole == 'government')
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            () => _updateAdStatus(ad.id, true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              Colors.deepPurple[900],
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        child: const Text('Accept'),
                                       ),
-                                      child: const Text('Accept'),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed:
-                                          () => _updateAdStatus(ad.id, false),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.deepPurple[900],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed:
+                                            () => _updateAdStatus(ad.id, false),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor:
+                                              Colors.deepPurple[900],
+                                        ),
+                                        child: const Text('Decline'),
                                       ),
-                                      child: const Text('Decline'),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       );

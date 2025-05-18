@@ -32,10 +32,11 @@ class _PollCardState extends State<Pollcard> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        final doc = await FirebaseFirestore.instance
-            .collection('Users')
-            .doc(currentUser.uid)
-            .get();
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('Users')
+                .doc(currentUser.uid)
+                .get();
 
         final data = doc.data();
         if (data != null && data['role'] != null) {
@@ -50,20 +51,26 @@ class _PollCardState extends State<Pollcard> {
 
   Future<void> _fetchCreatorFullName() async {
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(widget.poll.createdBy)
-          .get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(widget.poll.createdBy)
+              .get();
       final data = doc.data();
-      if (data != null && data['fullName'] != null) {
+      if (data != null) {
+        final name = data['fullName'] ?? data['displayName'] ?? 'User';
         if (mounted) {
           setState(() {
-            _creatorFullName = data['fullName'];
+            _creatorFullName = name;
           });
         }
       }
     } catch (e) {
-      // Optionally handle error
+      if (mounted) {
+        setState(() {
+          _creatorFullName = 'User';
+        });
+      }
     }
   }
 
@@ -103,36 +110,37 @@ class _PollCardState extends State<Pollcard> {
   void _confirmDeletePoll(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Poll'),
-        content: const Text('Are you sure you want to delete this poll?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Poll'),
+            content: const Text('Are you sure you want to delete this poll?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () async {
+                  try {
+                    await Provider.of<Pollproviders>(
+                      context,
+                      listen: false,
+                    ).deletePoll(widget.poll.pollId);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Poll deleted!')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                },
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              try {
-                await Provider.of<Pollproviders>(
-                  context,
-                  listen: false,
-                ).deletePoll(widget.poll.pollId);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Poll deleted!')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('Error: $e')));
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -410,28 +418,23 @@ class _PollCardState extends State<Pollcard> {
             // User info row
             Row(
               children: [
-                CircleAvatar(
-                  backgroundImage: const NetworkImage(
-                    'https://via.placeholder.com/40',
-                  ),
+                const CircleAvatar(
                   radius: 25,
+                  backgroundColor: Color(0xFF1E2A39),
+                  child: Icon(Icons.person, color: Colors.white),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Text(
-                            _creatorFullName ?? 'Loading...',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        _creatorFullName ?? 'Loading...',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       Text(
                         widget.poll.question,
@@ -445,7 +448,6 @@ class _PollCardState extends State<Pollcard> {
                     ],
                   ),
                 ),
-                // Only government users can see the poll options menu
                 if (_isGovernmentUser)
                   IconButton(
                     icon: const Icon(Icons.more_horiz, color: Colors.white),
@@ -464,13 +466,14 @@ class _PollCardState extends State<Pollcard> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: GestureDetector(
-                  onTap: (_isCitizenUser && userVote == null)
-                      ? () {
-                          setState(() {
-                            _selectedOption = option;
-                          });
-                        }
-                      : null,
+                  onTap:
+                      (_isCitizenUser && userVote == null)
+                          ? () {
+                            setState(() {
+                              _selectedOption = option;
+                            });
+                          }
+                          : null,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

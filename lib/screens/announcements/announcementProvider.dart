@@ -17,18 +17,20 @@ class AnnouncementsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final snapshot = await _firestore
-          .collection('announcements')
-          .orderBy('createdAt', descending: true)
-          .get();
+      final snapshot =
+          await _firestore
+              .collection('announcements')
+              .orderBy('createdAt', descending: true)
+              .get();
 
       _announcements = await Future.wait(
         snapshot.docs.map((doc) async {
           final commentsSnapshot =
               await doc.reference.collection('comments').get();
-          final comments = commentsSnapshot.docs
-              .map((commentDoc) => Comment.fromMap(commentDoc.data()))
-              .toList();
+          final comments =
+              commentsSnapshot.docs
+                  .map((commentDoc) => Comment.fromMap(commentDoc.data()))
+                  .toList();
 
           return Announcement.fromMap(doc.data(), doc.id, comments);
         }),
@@ -70,11 +72,11 @@ class AnnouncementsProvider with ChangeNotifier {
           .doc(announcementId)
           .collection('comments')
           .add({
-        'userId': user.uid,
-        'content': content,
-        'anonymous': anonymous,
-        'createdAt': Timestamp.now(),
-      });
+            'userId': user.uid,
+            'content': content,
+            'anonymous': anonymous,
+            'createdAt': Timestamp.now(),
+          });
 
       await fetchAnnouncements();
     } catch (error) {
@@ -88,6 +90,7 @@ class AnnouncementsProvider with ChangeNotifier {
     required String description,
     String? mediaUrl,
     String category = 'General',
+    String? imageBase64, // <-- Add this
   }) async {
     try {
       final user = _auth.currentUser;
@@ -106,6 +109,7 @@ class AnnouncementsProvider with ChangeNotifier {
         'category': category,
         'createdAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
+        'imageBase64': imageBase64, // <-- Add this
       });
 
       await fetchAnnouncements();

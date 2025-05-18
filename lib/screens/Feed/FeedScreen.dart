@@ -12,6 +12,8 @@ import 'CreatePostDialog.dart';
 import 'package:govconnect/screens/advertisements/AdProvider.dart';
 import 'package:govconnect/screens/advertisements/AdCard.dart';
 import 'package:govconnect/screens/advertisements/AdsSubmission.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
@@ -22,11 +24,12 @@ class FeedScreen extends StatefulWidget {
 class _FeedScreenState extends State<FeedScreen> {
   int _currentBottomNavIndex = 0;
   bool _isCreatingPost = false;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<AnnouncementsProvider>(
         context,
         listen: false,
@@ -34,6 +37,19 @@ class _FeedScreenState extends State<FeedScreen> {
       Provider.of<Pollproviders>(context, listen: false).fetchPolls();
       Provider.of<AdProvider>(context, listen: false).fetchApprovedAds();
       Provider.of<AdProvider>(context, listen: false).setupAdListener();
+
+      // Fetch user role
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('Users')
+                .doc(user.uid)
+                .get();
+        setState(() {
+          _userRole = doc.data()?['role'];
+        });
+      }
     });
   }
 
@@ -125,7 +141,9 @@ class _FeedScreenState extends State<FeedScreen> {
       body: Stack(
         children: [
           // Main feed content
-          announcementsProvider.isLoading || pollsProvider.isLoading || adProvider.isLoading
+          announcementsProvider.isLoading ||
+                  pollsProvider.isLoading ||
+                  adProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : feedItems.isEmpty
               ? const Center(child: Text('No content yet'))
@@ -147,28 +165,31 @@ class _FeedScreenState extends State<FeedScreen> {
         currentIndex: _currentBottomNavIndex,
         onTap: _onBottomNavTap,
       ),
-      floatingActionButton: currentUser != null
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // Advertisement button
-                FloatingActionButton.small(
-                  heroTag: 'ad_button',
-                  onPressed: _navigateToSubmitAd,
-                  backgroundColor: Colors.amber[800],
-                  child: const Icon(Icons.campaign),
-                ),
-                const SizedBox(height: 16),
-                // Create post button
-                FloatingActionButton(
-                  heroTag: 'post_button',
-                  onPressed: _showCreatePostDialog,
-                  backgroundColor: Colors.blue,
-                  child: const Icon(Icons.add),
-                ),
-              ],
-            )
-          : null,
+      floatingActionButton:
+          currentUser != null
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Advertisement button (only for advertisers)
+                  if (_userRole == 'advertiser')
+                    FloatingActionButton.small(
+                      heroTag: 'ad_button',
+                      onPressed: _navigateToSubmitAd,
+                      backgroundColor: Colors.amber[800],
+                      child: const Icon(Icons.campaign),
+                    ),
+                  if (_userRole == 'advertiser') const SizedBox(height: 16),
+                  // Create post button (only for government users)
+                  if (_userRole == 'government')
+                    FloatingActionButton(
+                      heroTag: 'post_button',
+                      onPressed: _showCreatePostDialog,
+                      backgroundColor: Colors.blue,
+                      child: const Icon(Icons.add),
+                    ),
+                ],
+              )
+              : null,
     );
   }
 }

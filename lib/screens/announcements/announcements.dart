@@ -11,6 +11,7 @@ class Announcement {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<Comment> comments;
+  final String? imageBase64; // <-- Add this
 
   Announcement({
     required this.id,
@@ -22,9 +23,14 @@ class Announcement {
     required this.createdAt,
     required this.updatedAt,
     required this.comments,
+    this.imageBase64, // <-- Add this
   });
 
-  factory Announcement.fromMap(Map<String, dynamic> map, String id, List<Comment> comments) {
+  factory Announcement.fromMap(
+    Map<String, dynamic> map,
+    String id,
+    List<Comment> comments,
+  ) {
     return Announcement(
       id: id,
       title: map['title'] ?? '',
@@ -35,6 +41,7 @@ class Announcement {
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: (map['updatedAt'] as Timestamp).toDate(),
       comments: comments,
+      imageBase64: map['imageBase64'] as String?, // <-- Add this
     );
   }
 }

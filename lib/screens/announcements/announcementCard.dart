@@ -5,6 +5,8 @@ import 'package:govconnect/screens/announcements/announcementProvider.dart';
 import 'package:govconnect/screens/announcements/announcements.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'dart:convert';
+import 'package:translator/translator.dart';
 
 class AnnouncementCard extends StatefulWidget {
   final Announcement announcement;
@@ -45,10 +47,11 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
       }
       // Check if current user is a government user
       try {
-        final doc = await FirebaseFirestore.instance
-            .collection('Users')
-            .doc(currentUser.uid)
-            .get();
+        final doc =
+            await FirebaseFirestore.instance
+                .collection('Users')
+                .doc(currentUser.uid)
+                .get();
         final data = doc.data();
         if (data != null &&
             (data['role'] == 'government' || data['isGovernment'] == true)) {
@@ -66,10 +69,11 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
 
   Future<void> _fetchCreatorFullName() async {
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(widget.announcement.createdBy)
-          .get();
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(widget.announcement.createdBy)
+              .get();
       final data = doc.data();
       if (data != null && data['fullName'] != null) {
         if (mounted) {
@@ -169,7 +173,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                 widget.announcement.description.length > 150) ...[
               TextButton(
                 onPressed: () => _showFullAnnouncement(context),
-                child: const Text('Read more', style: TextStyle(color: accentColor)),
+                child: const Text(
+                  'Read more',
+                  style: TextStyle(color: accentColor),
+                ),
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
@@ -183,10 +190,11 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: GestureDetector(
-                  onTap: () => _showFullScreenImage(
-                    context,
-                    widget.announcement.mediaUrl!,
-                  ),
+                  onTap:
+                      () => _showFullScreenImage(
+                        context,
+                        widget.announcement.mediaUrl!,
+                      ),
                   child: Image.network(
                     widget.announcement.mediaUrl!,
                     width: double.infinity,
@@ -200,10 +208,11 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                         child: Center(
                           child: CircularProgressIndicator(
                             color: accentColor,
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
+                            value:
+                                loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
                           ),
                         ),
                       );
@@ -212,10 +221,34 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                       return Container(
                         height: 200,
                         color: secondaryColor,
-                        child: const Center(child: Icon(Icons.broken_image, color: textColorSecondary)),
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: textColorSecondary,
+                          ),
+                        ),
                       );
                     },
                   ),
+                ),
+              ),
+            ],
+
+            if (widget.announcement.imageBase64 != null &&
+                widget.announcement.imageBase64!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  base64Decode(widget.announcement.imageBase64!),
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stackTrace) => Container(
+                        height: 200,
+                        color: Colors.grey[200],
+                        child: const Center(child: Icon(Icons.broken_image)),
+                      ),
                 ),
               ),
             ],
@@ -230,7 +263,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                   Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.mode_comment_outlined, color: textColorSecondary),
+                        icon: const Icon(
+                          Icons.mode_comment_outlined,
+                          color: textColorSecondary,
+                        ),
                         onPressed: () => _showCommentDialog(context),
                       ),
                       Text(
@@ -250,7 +286,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
 
                   // Like button (optional)
                   IconButton(
-                    icon: const Icon(Icons.favorite_border, color: textColorSecondary),
+                    icon: const Icon(
+                      Icons.favorite_border,
+                      color: textColorSecondary,
+                    ),
                     onPressed: () {}, // Implement like functionality if needed
                   ),
                 ],
@@ -325,7 +364,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
             if (_isCurrentUserCreator)
               ListTile(
                 leading: const Icon(Icons.edit, color: textColorSecondary),
-                title: const Text('Edit announcement', style: TextStyle(color: textColorPrimary)),
+                title: const Text(
+                  'Edit announcement',
+                  style: TextStyle(color: textColorPrimary),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditDialog(context);
@@ -334,7 +376,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
             if (_isCurrentUserCreator)
               ListTile(
                 leading: const Icon(Icons.delete, color: textColorSecondary),
-                title: const Text('Delete announcement', style: TextStyle(color: textColorPrimary)),
+                title: const Text(
+                  'Delete announcement',
+                  style: TextStyle(color: textColorPrimary),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmDelete(context);
@@ -342,7 +387,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
               ),
             ListTile(
               leading: const Icon(Icons.flag, color: textColorSecondary),
-              title: const Text('Report post', style: TextStyle(color: textColorPrimary)),
+              title: const Text(
+                'Report post',
+                style: TextStyle(color: textColorPrimary),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _showReportDialog(context);
@@ -350,7 +398,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
             ),
             ListTile(
               leading: const Icon(Icons.close, color: textColorSecondary),
-              title: const Text('Cancel', style: TextStyle(color: textColorPrimary)),
+              title: const Text(
+                'Cancel',
+                style: TextStyle(color: textColorPrimary),
+              ),
               onTap: () => Navigator.pop(context),
             ),
           ],
@@ -367,20 +418,21 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          backgroundColor: backgroundColor,
-          appBar: AppBar(
-            backgroundColor: primaryColor,
-            iconTheme: const IconThemeData(color: textColorPrimary),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: AnnouncementCard(
-              announcement: widget.announcement,
-              showFullContent: true,
+        builder:
+            (context) => Scaffold(
+              backgroundColor: backgroundColor,
+              appBar: AppBar(
+                backgroundColor: primaryColor,
+                iconTheme: const IconThemeData(color: textColorPrimary),
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: AnnouncementCard(
+                  announcement: widget.announcement,
+                  showFullContent: true,
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -389,17 +441,18 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          body: Center(
-            child: InteractiveViewer(child: Image.network(imageUrl)),
-          ),
-        ),
+        builder:
+            (context) => Scaffold(
+              backgroundColor: Colors.black,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+              ),
+              body: Center(
+                child: InteractiveViewer(child: Image.network(imageUrl)),
+              ),
+            ),
       ),
     );
   }
@@ -430,14 +483,21 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const CircleAvatar(radius: 20, backgroundColor: accentColor, child: Icon(Icons.person, color: textColorPrimary)),
+                    const CircleAvatar(
+                      radius: 20,
+                      backgroundColor: accentColor,
+                      child: Icon(Icons.person, color: textColorPrimary),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: ValueListenableBuilder<bool>(
                         valueListenable: isAnonymous,
                         builder: (context, value, child) {
                           return CheckboxListTile(
-                            title: const Text('Post anonymously', style: TextStyle(color: textColorPrimary)),
+                            title: const Text(
+                              'Post anonymously',
+                              style: TextStyle(color: textColorPrimary),
+                            ),
                             value: value,
                             onChanged: (v) => isAnonymous.value = v!,
                             contentPadding: EdgeInsets.zero,
@@ -524,9 +584,18 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Comments', style: TextStyle(color: textColorPrimary, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Comments',
+                        style: TextStyle(
+                          color: textColorPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: textColorSecondary),
+                        icon: const Icon(
+                          Icons.close,
+                          color: textColorSecondary,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -585,7 +654,10 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: cardColor,
-          title: const Text('Edit Announcement', style: TextStyle(color: textColorPrimary)),
+          title: const Text(
+            'Edit Announcement',
+            style: TextStyle(color: textColorPrimary),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -626,11 +698,13 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                     fillColor: secondaryColor,
                     filled: true,
                   ),
-                  items: categories
-                      .map(
-                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
-                      )
-                      .toList(),
+                  items:
+                      categories
+                          .map(
+                            (cat) =>
+                                DropdownMenuItem(value: cat, child: Text(cat)),
+                          )
+                          .toList(),
                   onChanged: (value) {
                     if (value != null) {
                       selectedCategory = value;
@@ -665,12 +739,12 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                     ),
                   );
                 } catch (e) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: cardColor,
-                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: cardColor,
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: accentColor),
@@ -689,46 +763,56 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: const Text('Delete Announcement', style: TextStyle(color: textColorPrimary)),
-        content: const Text(
-          'Are you sure you want to delete this announcement?',
-          style: TextStyle(color: textColorPrimary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: accentColor)),
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: cardColor,
+            title: const Text(
+              'Delete Announcement',
+              style: TextStyle(color: textColorPrimary),
+            ),
+            content: const Text(
+              'Are you sure you want to delete this announcement?',
+              style: TextStyle(color: textColorPrimary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: accentColor),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await Provider.of<AnnouncementsProvider>(
+                      context,
+                      listen: false,
+                    ).deleteAnnouncement(widget.announcement.id);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Announcement deleted!'),
+                        backgroundColor: cardColor,
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: cardColor,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await Provider.of<AnnouncementsProvider>(
-                  context,
-                  listen: false,
-                ).deleteAnnouncement(widget.announcement.id);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Announcement deleted!'),
-                    backgroundColor: cardColor,
-                  ),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(
-                  content: Text('Error: $e'),
-                  backgroundColor: cardColor,
-                ));
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
     );
   }
 
@@ -739,72 +823,174 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: const Text('Report Post', style: TextStyle(color: textColorPrimary)),
-        content: const Text(
-          'Thank you for helping us keep the community safe. This feature is coming soon.',
-          style: TextStyle(color: textColorPrimary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: accentColor)),
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: cardColor,
+            title: const Text(
+              'Report Post',
+              style: TextStyle(color: textColorPrimary),
+            ),
+            content: const Text(
+              'Thank you for helping us keep the community safe. This feature is coming soon.',
+              style: TextStyle(color: textColorPrimary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK', style: TextStyle(color: accentColor)),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
 
-class CommentTile extends StatelessWidget {
+class CommentTile extends StatefulWidget {
   final Comment comment;
-
   const CommentTile({super.key, required this.comment});
+
+  @override
+  State<CommentTile> createState() => _CommentTileState();
+}
+
+class _CommentTileState extends State<CommentTile> {
+  String? _translated;
+  bool _isTranslating = false;
+
+  bool _isArabic(String text) {
+    return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
+  }
+
+  Future<void> _toggleTranslation() async {
+    if (_translated != null) {
+      setState(() {
+        _translated = null;
+      });
+      return;
+    }
+    setState(() => _isTranslating = true);
+    final translator = GoogleTranslator();
+    final text = widget.comment.content;
+    final target = _isArabic(text) ? 'en' : 'ar';
+    final translation = await translator.translate(text, to: target);
+    setState(() {
+      _translated = translation.text;
+      _isTranslating = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final timeAgo = _formatTimeAgo(comment.createdAt);
-    const textColorPrimary = Colors.white;
-    const textColorSecondary = Color(0xFFA9B1D6);
-    const accentColor = Color(0xFF7AA2F7);
+    final timeAgo = _formatTimeAgo(widget.comment.createdAt);
+    final isCurrentUserComment =
+        FirebaseAuth.instance.currentUser?.uid == widget.comment.userId;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: accentColor.withOpacity(0.3),
-            child: Icon(
-              comment.anonymous ? Icons.visibility_off : Icons.person,
-              size: 18,
-              color: accentColor,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                child: Icon(
+                  widget.comment.anonymous
+                      ? Icons.visibility_off
+                      : Icons.person,
+                  size: 18,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          widget.comment.anonymous
+                              ? 'Anonymous'
+                              : 'Community Member',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        if (isCurrentUserComment && !widget.comment.anonymous)
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'You',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        const Spacer(),
+                        // Optionally add a delete button here if you want
+                      ],
+                    ),
+                    Text(
+                      widget.comment.content,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      timeAgo,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  comment.anonymous ? 'Anonymous' : 'Community Member',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: textColorPrimary,
-                  ),
+          if (_translated != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _translated!,
+                style: const TextStyle(
+                  color: Colors.blueAccent,
+                  fontStyle: FontStyle.italic,
                 ),
-                Text(comment.content, style: const TextStyle(color: textColorPrimary)),
-                const SizedBox(height: 4),
-                Text(
-                  timeAgo,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: textColorSecondary,
-                  ),
-                ),
-              ],
+              ),
+            ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _isTranslating ? null : _toggleTranslation,
+              child:
+                  _isTranslating
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : Text(
+                        _translated == null
+                            ? 'See Translation'
+                            : 'Hide Translation',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
             ),
           ),
         ],
@@ -826,4 +1012,9 @@ class CommentTile extends StatelessWidget {
       return 'Just now';
     }
   }
+}
+
+bool _isArabic(String text) {
+  // Checks if the text contains any Arabic characters
+  return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
 }
