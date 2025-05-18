@@ -20,17 +20,19 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late final ChatProvider _chatProvider;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _chatProvider = Provider.of<ChatProvider>(context, listen: false);
     // Schedule the seen call for after the first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+      _chatProvider.seen(widget.chatId);
       _scrollToBottom();
     });
-    Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+    _chatProvider.seen(widget.chatId);
   }
 
   @override
@@ -118,24 +120,31 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                     ],
                   ),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        otherUserName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          otherUserName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                      ),
-                      Text(
-                        (chat.inChat[chat.getOtherUserId(widget.userId)] ??
-                                false)
-                            ? 'In the chat'
-                            : 'Last seen recently',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      ),
-                    ],
+                        Text(
+                          (chat.inChat[chat.getOtherUserId(widget.userId)] ??
+                                  false)
+                              ? 'In the chat'
+                              : 'Last seen recently',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -185,7 +194,6 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                             controller: _messageController,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              hintText: 'Type your message...',
                               hintStyle: TextStyle(color: Colors.grey[400]),
                               border: InputBorder.none,
                               filled: true,
@@ -214,12 +222,12 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.grid_view, color: Colors.blue),
-                        onPressed: () {
-                          _showImageUrlDialog(context, chatProvider);
-                        },
-                      ),
+                      // IconButton(
+                      //   icon: const Icon(Icons.grid_view, color: Colors.blue),
+                      //   onPressed: () {
+                      //     _showImageUrlDialog(context, chatProvider);
+                      //   },
+                      // ),
                       IconButton(
                         icon: const Icon(Icons.send, color: Colors.blue),
                         onPressed: () {
@@ -317,10 +325,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+    _chatProvider.seen(widget.chatId);
     _messageController.dispose();
     _scrollController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

@@ -13,12 +13,35 @@ class ChatProvider extends ChangeNotifier {
   String? _currentUserId;
   bool _isLoading = false;
 
+  String _searchQuery = '';
+  List<Chat> _filteredChats = [];
+
+  // Add these getters
+  String get searchQuery => _searchQuery;
+  List<Chat> get filteredChats =>
+      _searchQuery.isEmpty ? _chats : _filteredChats;
+
   // Getters
   List<Chat> get chats => _chats;
   String? get currentUserId => _currentUserId;
   bool get isLoading => _isLoading;
   bool isInChat(String chatId) =>
       getChatById(chatId)?.inChat[_currentUserId!] ?? false;
+
+  void searchChats(String query) {
+    _searchQuery = query.toLowerCase();
+    if (_searchQuery.isEmpty) {
+      _filteredChats = _chats;
+    } else {
+      _filteredChats =
+          _chats.where((chat) {
+            final otherUserName =
+                chat.getOtherUserName(_currentUserId!).toLowerCase();
+            return otherUserName.contains(_searchQuery);
+          }).toList();
+    }
+    notifyListeners();
+  }
 
   // Load current user ID from SharedPreferences
   Future<void> _loadCurrentUserId() async {
@@ -49,7 +72,7 @@ class ChatProvider extends ChangeNotifier {
     } catch (e) {
       print('Error getting user number: $e');
     }
-    return  "";
+    return "";
   }
 
   StreamSubscription<QuerySnapshot>? _chatSubscription;
@@ -325,19 +348,21 @@ class ChatProvider extends ChangeNotifier {
 
       // Pick a random government user
       final random = Random();
-      var randomGovUser = govUsersQuery.docs[random.nextInt(govUsersQuery.docs.length)];
+      var randomGovUser =
+          govUsersQuery.docs[random.nextInt(govUsersQuery.docs.length)];
       final govUserId = randomGovUser.id;
 
       // Don't create chat with self
       if (govUserId == _currentUserId && govUsersQuery.docs.length > 1) {
-        while(true) {
-          final newRandomGovUser = govUsersQuery.docs[random.nextInt(govUsersQuery.docs.length)];
+        while (true) {
+          final newRandomGovUser =
+              govUsersQuery.docs[random.nextInt(govUsersQuery.docs.length)];
           if (newRandomGovUser.id != _currentUserId) {
             randomGovUser = newRandomGovUser;
             break;
           }
         }
-      }else if(govUsersQuery.docs.length == 1){
+      } else if (govUsersQuery.docs.length == 1) {
         print('No other government officials found');
         return "";
       }
@@ -350,24 +375,29 @@ class ChatProvider extends ChangeNotifier {
       final chatId = const Uuid().v4();
       final chatData = {
         'users': {
-          _currentUserId: currentUserDoc.data()?['fullName']+" (Citizen)" ?? 'Unknown User',
-          govUserId: randomGovUser.data()['fullName']+" (Government official)" ?? 'Unknown User',
+          _currentUserId:
+              currentUserDoc.data()?['fullName'] + " (Citizen)" ??
+              'Unknown User',
+          govUserId:
+              randomGovUser.data()['fullName'] + " (Government official)" ??
+              'Unknown User',
         },
         'lastMessageIndex': {_currentUserId: 1, govUserId: 1},
         'inChat': {_currentUserId: false, govUserId: false},
         'messages': [
           {
-            'text': 'This is an automated message, will get back to you as soon as possible.',
+            'text':
+                'This is an automated message, will get back to you as soon as possible.',
             'time': Timestamp.now(),
-            'userId':govUserId,
+            'userId': govUserId,
             'imageUrl': null,
           },
           {
             'text': 'How may I assist you today?',
             'time': Timestamp.now(),
-            'userId':govUserId,
+            'userId': govUserId,
             'imageUrl': null,
-          }
+          },
         ],
         'lastUpdate': FieldValue.serverTimestamp(),
       };
