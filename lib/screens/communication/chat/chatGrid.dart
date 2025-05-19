@@ -40,8 +40,8 @@ class ChatGrid extends StatelessWidget {
         ),
         body: Consumer<ChatProvider>(
           builder: (context, chatProvider, child) {
-            if (chatProvider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+          if (chatProvider.isLoading || chatProvider.currentUserId == null) {
+              return const Center(child: CircularProgressIndicator(color: Colors.blue));
             }
 
             return Column(

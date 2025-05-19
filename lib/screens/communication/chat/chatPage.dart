@@ -27,27 +27,22 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    // Schedule the seen call for after the first frame
+    // Open chat when entering
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _chatProvider.seen(widget.chatId);
+      _chatProvider.openChat(widget.chatId);
       _scrollToBottom();
     });
-    _chatProvider.seen(widget.chatId);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (Provider.of<ChatProvider>(
-              context,
-              listen: false,
-            ).isInChat(widget.chatId) &&
-            state == AppLifecycleState.paused ||
+    if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
-      Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+      _chatProvider.closeChat(widget.chatId);
     } else if (state == AppLifecycleState.resumed) {
-      Provider.of<ChatProvider>(context, listen: false).seen(widget.chatId);
+      _chatProvider.openChat(widget.chatId);
     }
   }
 
@@ -66,10 +61,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
           canPop: true,
           onPopInvoked: (bool didPop) {
             if (didPop) {
-              Provider.of<ChatProvider>(
-                context,
-                listen: false,
-              ).seen(widget.chatId);
+              _chatProvider.closeChat(widget.chatId);
             }
           },
           child: Scaffold(
@@ -79,10 +71,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.blue),
                 onPressed: () {
-                  Provider.of<ChatProvider>(
-                    context,
-                    listen: false,
-                  ).seen(widget.chatId);
+                  _chatProvider.closeChat(widget.chatId);
                   Navigator.pop(context);
                 },
               ),
@@ -325,7 +314,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    _chatProvider.seen(widget.chatId);
+    _chatProvider.closeChat(widget.chatId);
     _messageController.dispose();
     _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
