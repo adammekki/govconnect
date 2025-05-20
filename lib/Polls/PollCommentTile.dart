@@ -76,7 +76,7 @@ class _PollCommentTileState extends State<PollCommentTile> {
                         Text(
                           widget.comment.anonymous
                               ? 'Anonymous'
-                              : 'Community Member',
+                              : widget.comment.userName ?? 'Anonymous',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -102,22 +102,6 @@ class _PollCommentTileState extends State<PollCommentTile> {
                             ),
                           ),
                         const Spacer(),
-                        if (isCurrentUserComment)
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.white70,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              if (widget.onDelete != null) {
-                                _confirmDeleteComment(
-                                  context,
-                                  widget.comment.id,
-                                );
-                              }
-                            },
-                          ),
                       ],
                     ),
                     Text(

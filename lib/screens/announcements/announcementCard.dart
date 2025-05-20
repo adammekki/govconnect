@@ -277,21 +277,6 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                       ),
                     ],
                   ),
-
-                  // Share button
-                  IconButton(
-                    icon: const Icon(Icons.share, color: textColorSecondary),
-                    onPressed: () => _shareAnnouncement(),
-                  ),
-
-                  // Like button (optional)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.favorite_border,
-                      color: textColorSecondary,
-                    ),
-                    onPressed: () {}, // Implement like functionality if needed
-                  ),
                 ],
               ),
             ),
@@ -915,7 +900,7 @@ class _CommentTileState extends State<CommentTile> {
                         Text(
                           widget.comment.anonymous
                               ? 'Anonymous'
-                              : 'Community Member',
+                              : widget.comment.userName ?? 'Anonymous',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

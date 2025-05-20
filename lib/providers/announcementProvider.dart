@@ -67,7 +67,8 @@ class AnnouncementsProvider with ChangeNotifier {
         throw Exception('Only citizens can comment');
       }
 
-      await _firestore
+      if(anonymous == true){
+        await _firestore
           .collection('announcements')
           .doc(announcementId)
           .collection('comments')
@@ -77,6 +78,24 @@ class AnnouncementsProvider with ChangeNotifier {
             'anonymous': anonymous,
             'createdAt': Timestamp.now(),
           });
+      } else {
+        final userSnapshot = await _firestore
+          .collection('Users')
+          .doc(user.uid)
+          .get();
+
+        await _firestore
+          .collection('announcements')
+          .doc(announcementId)
+          .collection('comments')
+          .add({
+            'userId': user.uid,
+            'userName': userSnapshot['fullName'],
+            'content': content,
+            'anonymous': anonymous,
+            'createdAt': Timestamp.now(),
+          });
+      }
 
       await fetchAnnouncements();
     } catch (error) {

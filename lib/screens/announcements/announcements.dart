@@ -50,12 +50,14 @@ class Comment {
   final String userId;
   final String content;
   final bool anonymous;
+  final String? userName;
   final DateTime createdAt;
 
   Comment({
     required this.userId,
     required this.content,
     required this.anonymous,
+    this.userName,
     required this.createdAt,
   });
 
@@ -64,6 +66,7 @@ class Comment {
       userId: map['userId'] ?? '',
       content: map['content'] ?? '',
       anonymous: map['anonymous'] ?? false,
+      userName: map['userName'] as String?,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }

@@ -282,6 +282,28 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                   ],
                                 ),
                               ),
+                            if(_userRole == 'advertiser')
+                              ad.isApproved == true
+                                ? const Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: Text(
+                                      'Ad Approved',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  )
+                                : const Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: Text(
+                                      'Ad Pending Review',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.yellow,
+                                      ),
+                                    ),
+                                  )
                           ],
                         ),
                       );

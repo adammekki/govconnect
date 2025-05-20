@@ -187,6 +187,11 @@ class Pollproviders with ChangeNotifier {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('User not logged in');
+      
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .get();
 
       // Add comment to Firestore
       final commentRef = await FirebaseFirestore.instance
@@ -195,6 +200,7 @@ class Pollproviders with ChangeNotifier {
           .collection('comments')
           .add({
         'userId': user.uid,
+        'userName': userSnapshot['fullName'],
         'content': content,
         'anonymous': anonymous,
         'createdAt': FieldValue.serverTimestamp(),

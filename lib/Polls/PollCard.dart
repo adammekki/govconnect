@@ -123,11 +123,11 @@ class _PollCardState extends State<Pollcard> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () async {
                   try {
+                    Navigator.pop(context);
                     await Provider.of<Pollproviders>(
                       context,
                       listen: false,
                     ).deletePoll(widget.poll.pollId);
-                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Poll deleted!')),
                     );
@@ -266,12 +266,20 @@ class _PollCardState extends State<Pollcard> {
     );
   }
 
-  void _showPollCommentDialog(BuildContext context) {
+void _showPollCommentDialog(BuildContext context) {
+    const cardColor = Color(0xFF1A1B26);
+    const accentColor = Color(0xFF7AA2F7);
+    const textColorPrimary = Colors.white;
+    const textColorSecondary = Color(0xFFA9B1D6);
+    const secondaryColor = Color(0xFF24283B);
+
     final commentController = TextEditingController();
+    final isAnonymous = ValueNotifier(false);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: cardColor,
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -284,8 +292,30 @@ class _PollCardState extends State<Pollcard> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const CircleAvatar(radius: 20, child: Icon(Icons.person)),
+                    const CircleAvatar(
+                      radius: 20,
+                      backgroundColor: accentColor,
+                      child: Icon(Icons.person, color: textColorPrimary),
+                    ),
                     const SizedBox(width: 12),
+                    Expanded(
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: isAnonymous,
+                        builder: (context, value, child) {
+                          return CheckboxListTile(
+                            title: const Text(
+                              'Post anonymously',
+                              style: TextStyle(color: textColorPrimary),
+                            ),
+                            value: value,
+                            onChanged: (v) => isAnonymous.value = v!,
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            activeColor: accentColor,
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -293,34 +323,45 @@ class _PollCardState extends State<Pollcard> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
                   controller: commentController,
+                  style: const TextStyle(color: textColorPrimary),
                   decoration: InputDecoration(
                     hintText: 'Write your comment...',
+                    hintStyle: const TextStyle(color: textColorSecondary),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
                     suffixIcon: IconButton(
-                      icon: const Icon(Icons.send),
+                      icon: const Icon(Icons.send, color: accentColor),
                       onPressed: () async {
                         if (commentController.text.trim().isEmpty) return;
+
                         try {
-                          await Provider.of<Pollproviders>(
+                          final provider = Provider.of<Pollproviders>(
                             context,
                             listen: false,
-                          ).addComment(
+                          );
+                          await provider.addComment(
                             widget.poll.pollId,
                             commentController.text.trim(),
-                            false,
+                            isAnonymous.value,
                           );
-                          Navigator.pop(context);
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error posting comment: $e'),
-                            ),
-                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error posting comment: $e'),
+                                backgroundColor: cardColor,
+                              ),
+                            );
+                          }
                         }
                       },
                     ),
+                    fillColor: secondaryColor,
+                    filled: true,
                   ),
                   maxLines: 3,
                 ),
@@ -563,10 +604,6 @@ class _PollCardState extends State<Pollcard> {
                   ],
                 ),
                 const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.white),
-                  onPressed: () {},
-                ),
                 // Comment button - visible to all users
                 IconButton(
                   icon: const Icon(
