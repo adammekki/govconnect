@@ -68,6 +68,8 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
     }
   }
 
+  final User? currentUser = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,11 +90,15 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance
+                stream: _userRole == 'government'
+                    ? FirebaseFirestore.instance
                         .collection('ads')
-                        .where('isApproved', isEqualTo: false)
                         .orderBy('createdAt', descending: true)
+                        .snapshots()
+                    : FirebaseFirestore.instance
+                        .collection('ads')
+                        .orderBy('createdAt', descending: true)
+                        .where('postedBy', isEqualTo: currentUser?.uid)
                         .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -183,13 +189,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                                    onPressed: () {
-                                      // Show options menu
-                                    },
-                                  ),
+                                  )
                                 ],
                               ),
                             ),

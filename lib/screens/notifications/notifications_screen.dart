@@ -64,6 +64,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1C2F41),
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/feed'),
+        ),
         title: const Text(
           'Notifications',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),

@@ -50,29 +50,34 @@ class _PollCardState extends State<Pollcard> {
   }
 
   Future<void> _fetchCreatorFullName() async {
-    try {
-      final doc =
-          await FirebaseFirestore.instance
-              .collection('Users')
-              .doc(widget.poll.createdBy)
-              .get();
-      final data = doc.data();
-      if (data != null) {
-        final name = data['fullName'] ?? data['displayName'] ?? 'User';
-        if (mounted) {
-          setState(() {
-            _creatorFullName = name;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _creatorFullName = 'User';
-        });
-      }
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('polls')
+        .doc(widget.poll.pollId)
+        .get();
+    
+    if (!mounted) return; // Check if widget is still mounted before setting state
+    
+    final data = doc.data();
+    if (data?['createdBy'] != null) {
+      setState(() {
+        _creatorFullName = data?['createdBy'];
+      });
+    } else {
+      // Fallback if fullName field doesn't exist
+      setState(() {
+        _creatorFullName = data?['createdBy'] ?? 'User1';
+      });
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _creatorFullName = 'User2'; // Fallback on error
+      });
+      print('Error fetching user name: $e');
     }
   }
+}
 
   void _showPollOptionsMenu(BuildContext context) {
     showModalBottomSheet(

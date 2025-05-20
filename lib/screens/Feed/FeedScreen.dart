@@ -174,7 +174,7 @@ class _FeedScreenState extends State<FeedScreen> {
           IconButton(
             icon: const Icon(Icons.home, color: Colors.white),
             onPressed: () {
-              Navigator.of(context).pushNamed('/home');
+              Navigator.of(context).pushNamed('/feed');
             },
           ),
         ],

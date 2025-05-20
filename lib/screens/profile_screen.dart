@@ -22,13 +22,17 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF1C2F41),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C2F41),
-        elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: const Color(0xFF1C2F41),
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () => Navigator.pushReplacementNamed(context, '/feed'),
+      ),
+      title: const Text(
+        'Profile',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: userDataFuture,
@@ -131,20 +135,6 @@ class ProfileScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => const EditProfileScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildDivider(),
-                      _buildProfileAction(
-                        context,
-                        icon: Icons.settings,
-                        title: 'Settings',
-                        onTap: () {
-                            Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SettingsScreen(),
                             ),
                           );
                         },
