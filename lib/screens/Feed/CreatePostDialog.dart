@@ -5,6 +5,7 @@ import 'package:govconnect/providers/announcementProvider.dart';
 import 'package:govconnect/providers/PollProvider.dart';
 import 'package:govconnect/Polls/PollForm.dart';
 import 'package:govconnect/screens/announcements/AnnouncementForm.dart';
+import 'dart:ui';
 
 class CreatePostDialog extends StatefulWidget {
   final VoidCallback onClose;
@@ -158,159 +159,172 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Material(
-        color: Colors.black.withOpacity(0.5),
-        child: Center(
+@override
+Widget build(BuildContext context) {
+  return GestureDetector(
+    onTap: () => FocusScope.of(context).unfocus(),
+    child: Stack(
+      children: [
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: Container(
+            color: Colors.black.withOpacity(0.5),
+          ),
+        ),
+        Center(
           child: SingleChildScrollView(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom + 16,
               top: 16,
+              left: 16,
+              right: 16,
             ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 500,
-                maxHeight: MediaQuery.of(context).size.height * 0.95,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0E1621),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1C3A5F),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Arrow/cancel button at the top left
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
-                          onPressed: widget.onClose,
-                          tooltip: 'Cancel',
-                        ),
-                        const Spacer(),
-                      ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Create new post',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C2F41),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
                       ),
                     ),
-
-                    // Toggle between Announcement and Polls
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Row(
                       children: [
-                        // Announcement button
-                        GestureDetector(
-                          onTap: () => _togglePostType(false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  !_isPollSelected
-                                      ? Colors.blue.withOpacity(0.2)
-                                      : Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color:
-                                    !_isPollSelected
-                                        ? Colors.blue
-                                        : Colors.grey,
-                              ),
-                            ),
-                            child: Text(
-                              'Announcement',
-                              style: TextStyle(
-                                color:
-                                    !_isPollSelected
-                                        ? Colors.blue
-                                        : Colors.grey,
-                              ),
-                            ),
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: widget.onClose,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-
-                        const SizedBox(width: 10),
-
-                        // Poll button
-                        GestureDetector(
-                          onTap: () => _togglePostType(true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  _isPollSelected
-                                      ? Colors.blue.withOpacity(0.2)
-                                      : Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color:
-                                    _isPollSelected ? Colors.blue : Colors.grey,
-                              ),
-                            ),
-                            child: Text(
-                              'Polls',
-                              style: TextStyle(
-                                color:
-                                    _isPollSelected ? Colors.blue : Colors.grey,
-                              ),
-                            ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          'Create new post',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
+                  ),
 
-                    const SizedBox(height: 16),
-
-                    // Content based on selected type
-                    _isPollSelected
-                        ? PollForm(
-                          questionController: _questionController,
-                          optionControllers: _optionControllers,
-                          onAddOption: _addOption,
-                          onRemoveOption: _removeOption,
-                        )
-                        : AnnouncementForm(
-                          titleController: _announcementTitleController,
-                          descriptionController: _announcementController,
-                          selectedCategory: _selectedCategory,
-                          onCategoryChanged: (category) {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                          },
-                          onImageSelected: (base64) {
-                            _announcementImageBase64 = base64;
-                          },
+                  // Toggle between Announcement and Polls
+                  // Toggle buttons with padding
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      // Announcement button
+                      GestureDetector(
+                        onTap: () => _togglePostType(false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                !_isPollSelected
+                                    ? Colors.blue.withOpacity(0.2)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  !_isPollSelected ? Colors.blue : Colors.grey,
+                            ),
+                          ),
+                          child: Text(
+                            'Announcement',
+                            style: TextStyle(
+                              color:
+                                  !_isPollSelected ? Colors.blue : Colors.grey,
+                            ),
+                          ),
                         ),
+                      ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(width: 10),
 
-                    // Create post button
-                    GestureDetector(
+                      // Poll button
+                      GestureDetector(
+                        onTap: () => _togglePostType(true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _isPollSelected
+                                    ? Colors.blue.withOpacity(0.2)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  _isPollSelected ? Colors.blue : Colors.grey,
+                            ),
+                          ),
+                          child: Text(
+                            'Polls',
+                            style: TextStyle(
+                              color:
+                                  _isPollSelected ? Colors.blue : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                                         ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Content with padding
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _isPollSelected
+                        ? PollForm(
+                            questionController: _questionController,
+                            optionControllers: _optionControllers,
+                            onAddOption: _addOption,
+                            onRemoveOption: _removeOption,
+                          )
+                        : AnnouncementForm(
+                            titleController: _announcementTitleController,
+                            descriptionController: _announcementController,
+                            selectedCategory: _selectedCategory,
+                            onCategoryChanged: (category) {
+                              setState(() {
+                                _selectedCategory = category;
+                              });
+                            },
+                            onImageSelected: (base64) {
+                              _announcementImageBase64 = base64;
+                            },
+                          ),
+                  ),
+
+                  // Create post button with padding
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: GestureDetector(
                       onTap: _createPost,
                       child: Container(
                         width: double.infinity,
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: const Color(0xFF3B5998),
@@ -326,17 +340,16 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
   @override
   void dispose() {

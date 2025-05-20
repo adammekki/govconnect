@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -13,9 +15,25 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+    String? _userRole;
+
+    Future<void> _fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        _userRole = doc.data()?['role'];
+      });
+    }
+  }
   @override
   void initState() {
     super.initState();
+    _fetchUserRole();
     // Load notifications when screen opens
     Future.microtask(() {
       Provider.of<NotificationProvider>(
@@ -81,12 +99,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           // Test button (only visible in debug mode)
           // if (const bool.fromEnvironment('dart.vm.product') == false)
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/feed');
-            },
-          ),
           TextButton(
             onPressed: () {
               Provider.of<NotificationProvider>(
@@ -193,7 +205,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined, size: 28),
             activeIcon: Icon(Icons.home, size: 28),
@@ -214,11 +226,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             activeIcon: Icon(Icons.menu, size: 28),
             label: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.ads_click_outlined, size: 28),
-            activeIcon: Icon(Icons.ads_click, size: 28),
-            label: '',
-          ),
+          if (_userRole == 'advertiser')
+            BottomNavigationBarItem(
+              icon: Icon(Icons.ads_click_outlined, size: 28),
+              activeIcon: Icon(Icons.ads_click, size: 28),
+              label: '',
+            ),
         ],
       ),
     );

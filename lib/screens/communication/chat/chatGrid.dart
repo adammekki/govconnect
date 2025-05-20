@@ -5,9 +5,38 @@ import 'package:provider/provider.dart';
 import 'chatProvider.dart';
 import 'chatWidget.dart';
 import 'chat.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class ChatGrid extends StatelessWidget {
+class ChatGrid extends StatefulWidget {
   const ChatGrid({super.key});
+
+  @override
+  State<ChatGrid> createState() => _ChatGridState();
+}
+
+class _ChatGridState extends State<ChatGrid> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserRole();
+  }
+
+    String? _userRole;
+
+    Future<void> _fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        _userRole = doc.data()?['role'];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +53,6 @@ class ChatGrid extends StatelessWidget {
             child: Icon(Icons.account_balance, color: Colors.white, size: 28),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.home, color: Colors.white),
-              onPressed: () {
-                Navigator.of(context).pushNamed('/feed');
-              },
-            ),
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: IconButton(
@@ -236,33 +259,34 @@ class ChatGrid extends StatelessWidget {
               Navigator.of(context).pushReplacementNamed('/adReview');
             }
           },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined, size: 28),
-              activeIcon: Icon(Icons.home, size: 28),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.message_outlined, size: 28),
-              activeIcon: Icon(Icons.message, size: 28),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_none, size: 28),
-              activeIcon: Icon(Icons.notifications, size: 28),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.menu, size: 28),
-              activeIcon: Icon(Icons.menu, size: 28),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.ads_click_outlined, size: 28),
-              activeIcon: Icon(Icons.ads_click, size: 28),
-              label: '',
-            ),
-          ],
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined, size: 28),
+            activeIcon: Icon(Icons.home, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message_outlined, size: 28),
+            activeIcon: Icon(Icons.message, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none, size: 28),
+            activeIcon: Icon(Icons.notifications, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu, size: 28),
+            activeIcon: Icon(Icons.menu, size: 28),
+            label: '',
+          ),
+          if(_userRole == 'advertiser') 
+          BottomNavigationBarItem(
+            icon: Icon(Icons.ads_click_outlined, size: 28),
+            activeIcon: Icon(Icons.ads_click, size: 28),
+            label: '',
+          ),
+        ],
         ),
       ),
     );
