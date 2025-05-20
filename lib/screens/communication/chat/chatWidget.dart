@@ -20,51 +20,71 @@ class ChatWidget extends StatelessWidget {
       children: [
         Dismissible(
           key: Key(chat.id),
-          direction: DismissDirection.startToEnd, // Only left to right swipe
+          direction: DismissDirection.horizontal, // Enable both directions
           background: Container(
+            // Delete background (left to right)
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20.0),
             color: Colors.red,
             child: const Icon(Icons.delete, color: Colors.white),
           ),
+          secondaryBackground: Container(
+            // Archive background (right to left)
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20.0),
+            color: Colors.blue,
+            child: const Icon(Icons.archive, color: Colors.white),
+          ),
           confirmDismiss: (direction) async {
-            // Show confirmation dialog
-            return await showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  backgroundColor: const Color.fromARGB(255, 41, 59, 94),
-                  title: const Text(
-                    'Delete Chat',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  content: Text(
-                    'Are you sure you want to delete chat with $otherUserName?',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
+            if (direction == DismissDirection.startToEnd) {
+              // Delete confirmation
+              return await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    backgroundColor: const Color.fromARGB(255, 41, 59, 94),
+                    title: const Text(
+                      'Delete Chat',
+                      style: TextStyle(color: Colors.white),
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
+                    content: Text(
+                      'Are you sure you want to delete chat with $otherUserName?',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
                       ),
-                    ),
-                  ],
-                );
-              },
-            );
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }else {
+              return true;
+            }
           },
           onDismissed: (direction) {
-            // Delete the chat
-            Provider.of<ChatProvider>(
-              context,
-              listen: false,
-            ).deleteChat(chat.id);
+            if (direction == DismissDirection.startToEnd) {
+              // Delete the chat
+              Provider.of<ChatProvider>(
+                context,
+                listen: false,
+              ).deleteChat(chat.id);
+            } else {
+              // Archive the chat
+              Provider.of<ChatProvider>(
+                context,
+                listen: false,
+              ).toggleArchiveChat(chat.id);
+            }
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -92,8 +112,8 @@ class ChatWidget extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   Text(
                     lastMessage != null ? _formatTime(lastMessage.time) : '',

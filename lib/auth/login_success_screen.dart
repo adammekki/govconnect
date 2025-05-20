@@ -107,7 +107,7 @@ class LoginSuccessScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pushNamedAndRemoveUntil(
                         context, 
-                        '/home', 
+                        '/feed', 
                         (route) => false
                       ),
                       style: ElevatedButton.styleFrom(
