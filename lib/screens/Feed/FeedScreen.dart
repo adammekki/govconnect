@@ -211,10 +211,42 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {},
-          ),
+          if (_userRole == 'government')
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: _showCreatePostDialog,
+                  icon: const Icon(Icons.add, color: Colors.blue),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(4),
+                ),
+              ),
+            ),
+          if (_userRole == 'advertiser')
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: _navigateToSubmitAd,
+                  icon: const Icon(Icons.add, color: Colors.orange),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(4),
+                ),
+              ),
+            ),
         ],
       ),
       drawer: const AppDrawer(),
@@ -271,7 +303,7 @@ class _FeedScreenState extends State<FeedScreen> {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined, size: 28),
             activeIcon: Icon(Icons.home, size: 28),
@@ -292,36 +324,14 @@ class _FeedScreenState extends State<FeedScreen> {
             activeIcon: Icon(Icons.menu, size: 28),
             label: '',
           ),
-          BottomNavigationBarItem(
+          if (_userRole == 'advertiser')
+            BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
-          ),
+            ),
         ],
       ),
-      floatingActionButton:
-          currentUser != null
-              ? Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (_userRole == 'advertiser')
-                    FloatingActionButton.small(
-                      heroTag: 'ad_button',
-                      onPressed: _navigateToSubmitAd,
-                      backgroundColor: Colors.amber[800],
-                      child: const Icon(Icons.campaign),
-                    ),
-                  if (_userRole == 'advertiser') const SizedBox(height: 16),
-                  if (_userRole == 'government')
-                    FloatingActionButton(
-                      heroTag: 'post_button',
-                      onPressed: _showCreatePostDialog,
-                      backgroundColor: Colors.blue,
-                      child: const Icon(Icons.add),
-                    ),
-                ],
-              )
-              : null,
     );
   }
 }

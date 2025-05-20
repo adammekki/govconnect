@@ -43,8 +43,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('userId', 'Abdelrahman');
 
   runApp(
     MultiProvider(

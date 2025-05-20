@@ -72,18 +72,14 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C2F41),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.account_balance, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Ads Submission Review',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
       ),
-      backgroundColor: const Color(0xFF1C2F41),
+      backgroundColor: const Color(0xFF0E1621),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -335,7 +331,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined, size: 28),
             activeIcon: Icon(Icons.home, size: 28),
@@ -356,6 +352,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
             activeIcon: Icon(Icons.menu, size: 28),
             label: '',
           ),
+          if(_userRole == 'advertiser') 
           BottomNavigationBarItem(
             icon: Icon(Icons.ads_click_outlined, size: 28),
             activeIcon: Icon(Icons.ads_click, size: 28),

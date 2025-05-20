@@ -6,8 +6,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/problem_report_provider.dart';
 import 'edit_profile_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +24,28 @@ class ProfileScreen extends StatelessWidget {
         .get()
         .then((doc) => doc.data());
     final provider = Provider.of<ProblemReportProvider>(context);
+
+    String? _userRole;
+
+    Future<void> _fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        _userRole = doc.data()?['role'];
+      });
+    }
+  }
+
+    @override
+  void initState() {
+    super.initState();
+    _fetchUserRole();
+  }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0E1621),
@@ -30,13 +58,7 @@ class ProfileScreen extends StatelessWidget {
           child: Icon(Icons.account_balance, color: Colors.white, size: 28),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushReplacementNamed('/feed');
-            },
-          ),
-          const SizedBox(width: 8),
+
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
@@ -299,7 +321,7 @@ class ProfileScreen extends StatelessWidget {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined, size: 28),
             activeIcon: Icon(Icons.home, size: 28),
@@ -320,6 +342,7 @@ class ProfileScreen extends StatelessWidget {
             activeIcon: Icon(Icons.menu, size: 28),
             label: '',
           ),
+          if(_userRole  == 'advertiser') 
           BottomNavigationBarItem(
             icon: Icon(Icons.ads_click_outlined, size: 28),
             activeIcon: Icon(Icons.ads_click, size: 28),
