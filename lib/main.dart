@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:govconnect/models/problem_report.dart';
 //providers
@@ -39,10 +40,21 @@ import 'package:govconnect/Polls/DisplayPoll.dart';
 import 'package:govconnect/screens/Feed/FeedScreen.dart';
 import 'package:govconnect/screens/advertisements/AdsReview.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print("Handling a background message: ${message.messageId}");
+}
+
+// Replace both main() functions with this single one:
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  
+  // Set up the background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  
+  // Get shared preferences
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('userId', 'Abdelrahman');
 
@@ -57,7 +69,6 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
       ],
-
       child: const MyApp(),
     ),
   );
