@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:govconnect/screens/edit_profile_screen.dart';
-import 'package:govconnect/screens/profile_screen.dart';
-import 'package:govconnect/screens/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 
 import 'package:govconnect/models/problem_report.dart';
 //providers
@@ -11,6 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:govconnect/providers/emergency_provider.dart';
 import 'package:govconnect/providers/notification_provider.dart';
 import 'package:govconnect/providers/problem_report_provider.dart';
+import 'providers/announcementProvider.dart';
+import 'package:govconnect/providers/AdProvider.dart';
+import 'package:govconnect/providers/PollProvider.dart';
 
 //auth
 import 'package:govconnect/auth/login_screen.dart';
@@ -21,6 +22,10 @@ import 'package:govconnect/auth/auth_page.dart';
 
 //screens
 import 'package:govconnect/homePage_screen.dart';
+import 'package:govconnect/screens/profile_screen.dart';
+import 'package:govconnect/screens/edit_profile_screen.dart';
+import 'package:govconnect/screens/settings.dart';
+
 import 'package:govconnect/screens/advertisements/file.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
@@ -30,9 +35,10 @@ import 'package:govconnect/screens/problems/problem_detail.dart';
 import 'package:govconnect/screens/problems/problems.dart';
 import 'package:govconnect/screens/problems/report_problem.dart';
 import 'package:govconnect/screens/notifications/notifications_screen.dart';
-
-
-
+import 'package:govconnect/Polls/AddPollScreen.dart';
+import 'package:govconnect/Polls/DisplayPoll.dart';
+import 'package:govconnect/screens/Feed/FeedScreen.dart';
+import 'package:govconnect/screens/advertisements/AdsReview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,11 +49,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // Add your providers here
+        ChangeNotifierProvider(create: (ctx) => AnnouncementsProvider()),
+        ChangeNotifierProvider(create: (ctx) => AdProvider()),
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
-        ChangeNotifierProvider( create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
+        ChangeNotifierProvider(create: (ctx) => Pollproviders()),
       ],
 
       child: const MyApp(),
@@ -58,28 +66,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -109,14 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      initialRoute: '/home',
+      initialRoute: '/feed',
       routes: {
         '/auth': (context) => const AuthPage(),
         '/signup': (context) => SignupScreen(),
         '/email_verification': (context) => EmailVerificationScreen(),
         '/login': (context) => LoginScreen(),
         '/login_success': (context) => const LoginSuccessScreen(),
-        '/home': (context) => const HomePage(title: 'GovConnect'),
+        '/home': (context) => HomePage(title: 'GovConnect'),
         '/chat': (context) => const ChatGrid(),
         '/emergencyContacts': (context) => EmergencyContactsScreen(),
         '/reportProblem': (context) => ReportProblemScreen(),
@@ -125,6 +111,10 @@ class _MyHomePageState extends State<MyHomePage> {
          report: ModalRoute.of(context)!.settings.arguments as ProblemReport,
          ),
         '/announcements': (context) => AnnouncementsScreen(),
+        '/polls': (context) =>  DisplayPoll(),
+        '/addPoll': (context) => Addpollscreen(),
+        '/feed': (context) => FeedScreen(),
+        '/adReview': (context) => AdReviewScreen(),
         '/notifications': (context) => NotificationsScreen(),
         '/advertisements': (context) =>  AdvertisementsScreen(),
         '/profile': (context) => const ProfileScreen(),
