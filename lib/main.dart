@@ -55,8 +55,6 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
   // Get shared preferences
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('userId', 'Abdelrahman');
 
   runApp(
     MultiProvider(
