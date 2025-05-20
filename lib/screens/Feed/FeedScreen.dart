@@ -121,27 +121,53 @@ class _FeedScreenState extends State<FeedScreen> {
     final adProvider = Provider.of<AdProvider>(context);
     final currentUser = FirebaseAuth.instance.currentUser;
 
-    final announcements = announcementsProvider.announcements.where((a) =>
-      _searchQuery.isEmpty ||
-      (a.title?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
-      (a.description.toLowerCase().contains(_searchQuery.toLowerCase()))
-    ).toList();
-    final polls = pollsProvider.getPolls.where((p) =>
-      _searchQuery.isEmpty ||
-      (p.question?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
-    ).toList();
-    final ads = adProvider.ads.where((ad) =>
-      _searchQuery.isEmpty ||
-      (ad.title?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
-      (ad.description?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
-    ).toList();
+    final announcements =
+        announcementsProvider.announcements
+            .where(
+              (a) =>
+                  _searchQuery.isEmpty ||
+                  (a.title?.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ) ??
+                      false) ||
+                  (a.description.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  )),
+            )
+            .toList();
+    final polls =
+        pollsProvider.getPolls
+            .where(
+              (p) =>
+                  _searchQuery.isEmpty ||
+                  (p.question?.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ) ??
+                      false),
+            )
+            .toList();
+    final ads =
+        adProvider.ads
+            .where(
+              (ad) =>
+                  _searchQuery.isEmpty ||
+                  (ad.title?.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ) ??
+                      false) ||
+                  (ad.description?.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ) ??
+                      false),
+            )
+            .toList();
 
     final feedItems = _buildFeedItems(announcements, polls, ads);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0E1621),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C2F41),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
@@ -150,18 +176,32 @@ class _FeedScreenState extends State<FeedScreen> {
         title: Container(
           height: 36,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: const Color(0xFF1C2F41),
+            borderRadius: BorderRadius.circular(25),
           ),
           child: TextField(
             controller: _searchController,
-            style: const TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.white),
+            cursorColor: Colors.blue,
             decoration: InputDecoration(
               hintText: 'Search...',
-              hintStyle: const TextStyle(color: Colors.black38),
-              prefixIcon: const Icon(Icons.search, color: Colors.black38),
-              border: InputBorder.none,
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25),
+                borderSide: BorderSide.none,
+              ),
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              filled: true,
+              fillColor: const Color(0xFF1C2F41),
             ),
             onChanged: (value) {
               setState(() {
@@ -173,9 +213,7 @@ class _FeedScreenState extends State<FeedScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/home');
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -185,12 +223,18 @@ class _FeedScreenState extends State<FeedScreen> {
           Column(
             children: [
               Expanded(
-                child: announcementsProvider.isLoading ||
-                        pollsProvider.isLoading ||
-                        adProvider.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : feedItems.isEmpty
-                        ? const Center(child: Text('No content yet', style: TextStyle(color: Colors.white70)))
+                child:
+                    announcementsProvider.isLoading ||
+                            pollsProvider.isLoading ||
+                            adProvider.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : feedItems.isEmpty
+                        ? const Center(
+                          child: Text(
+                            'No content yet',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
                         : ListView(children: feedItems),
               ),
             ],
@@ -204,9 +248,56 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: AppBottomBar(
-        currentIndex: _currentBottomNavIndex,
-        onTap: _onBottomNavTap,
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF1C2F41),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        elevation: 0,
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.of(context).pushReplacementNamed('/chat');
+          }
+          if (index == 2) {
+            Navigator.of(context).pushReplacementNamed('/notifications');
+          }
+          if (index == 3) {
+            Navigator.of(context).pushReplacementNamed('/profile');
+          }
+          if (index == 4) {
+            Navigator.of(context).pushReplacementNamed('/adReview');
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined, size: 28),
+            activeIcon: Icon(Icons.home, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message_outlined, size: 28),
+            activeIcon: Icon(Icons.message, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none, size: 28),
+            activeIcon: Icon(Icons.notifications, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu, size: 28),
+            activeIcon: Icon(Icons.menu, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.ads_click_outlined, size: 28),
+              activeIcon: Icon(Icons.ads_click, size: 28),
+              label: '',
+          ),
+        ],
       ),
       floatingActionButton:
           currentUser != null

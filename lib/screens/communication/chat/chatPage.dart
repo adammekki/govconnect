@@ -65,9 +65,9 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
             }
           },
           child: Scaffold(
-            backgroundColor: const Color.fromARGB(255, 27, 38, 59),
+            backgroundColor: const Color(0xFF0E1621),
             appBar: AppBar(
-              backgroundColor: const Color.fromARGB(255, 51, 74, 117),
+              backgroundColor: const Color(0xFF1C2F41),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.blue),
                 onPressed: () {
@@ -166,7 +166,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                     bottom: 8, // Added bottom padding
                   ),
                   decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 51, 74, 117),
+                    color: Color(0xFF1C2F41),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
@@ -186,12 +186,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                               hintStyle: TextStyle(color: Colors.grey[400]),
                               border: InputBorder.none,
                               filled: true,
-                              fillColor: Color.fromARGB(
-                                255,
-                                41,
-                                59,
-                                94,
-                              ), // darker shade for text input
+                              fillColor: const Color.fromARGB(255, 21, 33, 49), // darker shade for text input
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
