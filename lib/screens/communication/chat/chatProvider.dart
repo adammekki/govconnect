@@ -28,6 +28,8 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool isInChat(String chatId) =>
       getChatById(chatId)?.inChat[_currentUserId!] ?? false;
+  bool isArchived(String chatId) =>
+      getChatById(chatId)?.isArchive[_currentUserId!] ?? false;
 
   // Constructor to set up auth state listener
   ChatProvider() {
@@ -136,10 +138,13 @@ class ChatProvider extends ChangeNotifier {
                   data['inChat'] as Map<String, dynamic>?;
               final List<dynamic>? messagesData =
                   data['messages'] as List<dynamic>?;
+              final Map<String, dynamic>? isArchiveData =
+                  data['isArchive'] as Map<String, dynamic>?;
 
               if (usersData == null ||
                   lastMessageIndexData == null ||
-                  inChatData == null) {
+                  inChatData == null ||
+                  isArchiveData == null) {
                 print('Missing required data for chat ${doc.id}');
                 continue;
               }
@@ -166,6 +171,11 @@ class ChatProvider extends ChangeNotifier {
                   ),
                   inChat: Map<String, bool>.from(
                     inChatData.map(
+                      (key, value) => MapEntry(key, value as bool? ?? false),
+                    ),
+                  ),
+                  isArchive: Map<String, bool>.from(
+                    isArchiveData.map(
                       (key, value) => MapEntry(key, value as bool? ?? false),
                     ),
                   ),
@@ -267,7 +277,7 @@ class ChatProvider extends ChangeNotifier {
       // Check if we found both users
       if (currentUserDoc == null ||
           otherUserDoc == null ||
-          otherUserId == null || 
+          otherUserId == null ||
           otherUserId == _currentUserId) {
         return;
       }
@@ -285,6 +295,7 @@ class ChatProvider extends ChangeNotifier {
         'inChat': {_currentUserId: false, otherUserId: false},
         'messages': [],
         'lastUpdate': FieldValue.serverTimestamp(),
+        'isArchive': {_currentUserId: false, otherUserId: false},
       };
 
       await _firestore.collection('chat').doc(chatId).set(chatData);
@@ -418,8 +429,9 @@ class ChatProvider extends ChangeNotifier {
               randomGovUser.data()['fullName'] + " (Government official)" ??
               'Unknown User',
         },
-        'lastMessageIndex': {_currentUserId: 1, govUserId: 1},
+        'lastMessageIndex': {_currentUserId: -1, govUserId: 1},
         'inChat': {_currentUserId: false, govUserId: false},
+        'isArchive': {_currentUserId: false, govUserId: false},
         'messages': [
           {
             'text':
@@ -444,6 +456,25 @@ class ChatProvider extends ChangeNotifier {
       print('Error creating random government chat: $e');
       print('Error details: ${e.toString()}');
       return "";
+    }
+  }
+
+  // Add this method to your ChatProvider class
+  Future<void> toggleArchiveChat(String chatId) async {
+    try {
+      final chat = _chats.firstWhere((chat) => chat.id == chatId);
+      final currentArchiveStatus = chat.isArchive[_currentUserId] ?? false;
+
+      // Toggle archive status
+      await _firestore.collection('chat').doc(chatId).update({
+        'isArchive.$_currentUserId': !currentArchiveStatus,
+      });
+
+      // Update local state
+      chat.isArchive[_currentUserId!] = !currentArchiveStatus;
+      notifyListeners();
+    } catch (e) {
+      print('Error toggling archive status: $e');
     }
   }
 }

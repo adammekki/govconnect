@@ -18,7 +18,7 @@ class AppBottomBar extends StatelessWidget {
         onTap(index);
         switch (index) {
           case 0:
-            Navigator.of(context).pushReplacementNamed('/home');
+            Navigator.of(context).pushReplacementNamed('/feed');
             break;
           case 1:
             Navigator.of(context).pushReplacementNamed('/chat');

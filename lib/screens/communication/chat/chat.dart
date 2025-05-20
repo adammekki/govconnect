@@ -4,6 +4,7 @@ class Chat {
   Map<String, String> users; // userId1 and userId2 as keys, values are user names
   Map<String, int> lastMessageIndex; // lastMessageIndex for each user, key is userId and value is index
   Map<String, bool> inChat; // inChat status for each user
+  Map<String, bool> isArchive;
   List<Message> messages;
 
   Chat({
@@ -12,6 +13,7 @@ class Chat {
     required this.messages,
     required this.lastMessageIndex,
     required this.inChat,
+    required this.isArchive,
   });
 
   // Helper method to get other user's ID

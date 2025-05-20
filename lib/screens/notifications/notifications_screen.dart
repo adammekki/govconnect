@@ -18,13 +18,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     super.initState();
     // Load notifications when screen opens
     Future.microtask(() {
-      Provider.of<NotificationProvider>(context, listen: false).loadNotifications();
+      Provider.of<NotificationProvider>(
+        context,
+        listen: false,
+      ).loadNotifications();
     });
   }
 
-  void handleNotificationTap(BuildContext context, NotificationMessage notification) {
+  void handleNotificationTap(
+    BuildContext context,
+    NotificationMessage notification,
+  ) {
     // Mark the notification as read
-    Provider.of<NotificationProvider>(context, listen: false).markAsRead(notification.id);
+    Provider.of<NotificationProvider>(
+      context,
+      listen: false,
+    ).markAsRead(notification.id);
 
     // Navigate based on notification type
     switch (notification.type) {
@@ -60,24 +69,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1C2F41),
+      backgroundColor: const Color(0xFF0E1621),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C2F41),
+        backgroundColor: Colors.transparent, // Make AppBar transparent
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/feed'),
-        ),
-        title: const Text(
-          'Notifications',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        leadingWidth: 60,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Icon(Icons.account_balance, color: Colors.white, size: 28),
         ),
         actions: [
           // Test button (only visible in debug mode)
-          if (const bool.fromEnvironment('dart.vm.product') == false)
+          // if (const bool.fromEnvironment('dart.vm.product') == false)
+          IconButton(
+            icon: const Icon(Icons.home, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/feed');
+            },
+          ),
           TextButton(
             onPressed: () {
-              Provider.of<NotificationProvider>(context, listen: false).markAllAsRead();
+              Provider.of<NotificationProvider>(
+                context,
+                listen: false,
+              ).markAllAsRead();
             },
             child: const Text(
               'Mark All Read',
@@ -88,7 +103,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: Consumer<NotificationProvider>(
         builder: (context, provider, child) {
-          print('DEBUG: Building notifications screen. Notifications count: ${provider.notifications.length}');
+          print(
+            'DEBUG: Building notifications screen. Notifications count: ${provider.notifications.length}',
+          );
           print('DEBUG: Loading state: ${provider.isLoading}');
 
           if (provider.isLoading) {
@@ -99,32 +116,110 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             );
           }
 
-          if (provider.notifications.isEmpty) {
-            return const Center(
-              child: Text(
-                'No notifications yet',
-                style: TextStyle(color: Colors.white70),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 8.0),
+                child: Text(
+                  'Notifications',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 35,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => provider.loadNotifications(),
-            child: ListView.builder(
-              itemCount: provider.notifications.length,
-              padding: const EdgeInsets.all(8),
-              itemBuilder: (context, index) {
-                final notification = provider.notifications[index];
-                print('DEBUG: Building notification card for ${notification.type}');
-                return NotificationCard(
-                  notification: notification,
-                  onTap: () => handleNotificationTap(context, notification),
-                  onDismiss: () => provider.deleteNotification(notification.id),
-                );
-              },
-            ),
+              Expanded(
+                child:
+                    provider.notifications.isEmpty
+                        ? Center(
+                          child: Text(
+                            'No notifications yet',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                        : RefreshIndicator(
+                          onRefresh: () => provider.loadNotifications(),
+                          child: ListView.builder(
+                            itemCount: provider.notifications.length,
+                            padding: const EdgeInsets.all(8),
+                            itemBuilder: (context, index) {
+                              final notification =
+                                  provider.notifications[index];
+                              return NotificationCard(
+                                notification: notification,
+                                onTap:
+                                    () => handleNotificationTap(
+                                      context,
+                                      notification,
+                                    ),
+                                onDismiss:
+                                    () => provider.deleteNotification(
+                                      notification.id,
+                                    ),
+                              );
+                            },
+                          ),
+                        ),
+              ),
+            ],
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF1C2F41),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        elevation: 0,
+        currentIndex: 2,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.of(context).pushReplacementNamed('/feed');
+          }
+          if (index == 1) {
+            Navigator.of(context).pushReplacementNamed('/chat');
+          }
+          if (index == 3) {
+            Navigator.of(context).pushReplacementNamed('/profile');
+          }
+          if (index == 4) {
+            Navigator.of(context).pushReplacementNamed('/adReview');
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined, size: 28),
+            activeIcon: Icon(Icons.home, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message_outlined, size: 28),
+            activeIcon: Icon(Icons.message, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none, size: 28),
+            activeIcon: Icon(Icons.notifications, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu, size: 28),
+            activeIcon: Icon(Icons.menu, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.ads_click_outlined, size: 28),
+            activeIcon: Icon(Icons.ads_click, size: 28),
+            label: '',
+          ),
+        ],
       ),
     );
   }

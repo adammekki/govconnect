@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:govconnect/components/bottombar.dart';
 import 'package:govconnect/screens/communication/chat/chatPage.dart';
 import 'package:provider/provider.dart';
 import 'chatProvider.dart';
@@ -11,70 +12,97 @@ class ChatGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3, // Reduced to 3 tabs since Add is now a button
+      length: 5,
       child: Scaffold(
-        backgroundColor: const Color(0xFF1C2F41),
+        backgroundColor: const Color(0xFF0E1621),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1C2F41),
+          backgroundColor: Colors.transparent, // Make AppBar transparent
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.account_balance, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+          leadingWidth: 60,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Icon(Icons.account_balance, color: Colors.white, size: 28),
           ),
-          centerTitle: true, // Center the title
-          title: const Text(
-            "Chats",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 28, // Increased font size
-            ),
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Colors.blue, size: 28),
-              onPressed: () => _showAddChatOptions(context),
+              icon: const Icon(Icons.home, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/feed');
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.add_circle,
+                  color: Colors.blue,
+                  size: 28,
+                ),
+                onPressed: () => _showAddChatOptions(context),
+              ),
             ),
           ],
         ),
         body: Consumer<ChatProvider>(
           builder: (context, chatProvider, child) {
-          if (chatProvider.isLoading || chatProvider.currentUserId == null) {
-              return const Center(child: CircularProgressIndicator(color: Colors.blue));
+            if (chatProvider.isLoading || chatProvider.currentUserId == null) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.blue),
+              );
             }
 
             return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Add search bar
+                // Title and Search section
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Search chats...',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      filled: true,
-                      fillColor: const Color.fromARGB(255, 51, 74, 117),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(color: Colors.transparent),
+                  padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Chats',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(color: Colors.blue),
+                      const SizedBox(height: 16),
+                      TextField(
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Search chats...',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Colors.grey,
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFF1C2F41),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: const BorderSide(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: const BorderSide(color: Colors.blue),
+                          ),
+                        ),
+                        onChanged: (value) => chatProvider.searchChats(value),
                       ),
-                    ),
-                    onChanged: (value) => chatProvider.searchChats(value),
+                    ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.only(left: 16.0),
                   child: TabBar(
-                    isScrollable: true, // Makes tabs independent width
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    isScrollable: true,
+                    padding: EdgeInsets.zero,
+                    tabAlignment: TabAlignment.start,
                     labelStyle: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -84,31 +112,40 @@ class ChatGrid extends StatelessWidget {
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.grey[400],
                     indicator: BoxDecoration(
-                      color: const Color.fromARGB(255, 65, 90, 119),
+                      color: const Color(0xFF1C2F41),
                       borderRadius: BorderRadius.circular(25),
                     ),
                     dividerColor: Colors.transparent,
                     tabs: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: const Text('All'),
+                      Tab(
+                        text:
+                            'All${_getCountText(chatProvider.filteredChats.where((chat) {
+                              final lastIndex = chat.lastMessageIndex[chatProvider.currentUserId!] ?? -1;
+                              return lastIndex < chat.messages.length - 1 && !chatProvider.isArchived(chat.id);
+                            }).length)}',
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: const Text('Unread'),
+                      Tab(
+                        text:
+                            'Unread${_getCountText(chatProvider.filteredChats.where((chat) {
+                              final lastIndex = chat.lastMessageIndex[chatProvider.currentUserId!] ?? -1;
+                              return lastIndex < chat.messages.length - 1 && !chatProvider.isArchived(chat.id);
+                            }).length)}',
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: const Text('Read'),
+                      Tab(text: 'Read'),
+                      Tab(
+                        text:
+                            'Government${_getCountText(chatProvider.filteredChats.where((chat) {
+                              final otherUserName = chat.getOtherUserName(chatProvider.currentUserId!);
+                              final lastIndex = chat.lastMessageIndex[chatProvider.currentUserId!] ?? -1;
+                              return otherUserName.toLowerCase().endsWith('(government official)') && lastIndex < chat.messages.length - 1 && !chatProvider.isArchived(chat.id);
+                            }).length)}',
+                      ),
+                      Tab(
+                        text:
+                            'Archived${_getCountText(chatProvider.filteredChats.where((chat) {
+                              final lastIndex = chat.lastMessageIndex[chatProvider.currentUserId!] ?? -1;
+                              return chatProvider.isArchived(chat.id) && lastIndex < chat.messages.length - 1;
+                            }).length)}',
                       ),
                     ],
                   ),
@@ -116,32 +153,57 @@ class ChatGrid extends StatelessWidget {
                 const SizedBox(height: 8),
                 Expanded(
                   child: TabBarView(
+                    // In the TabBarView children array:
                     children: [
-                      // All Chats
+                      // All Chats (non-archived)
                       _buildChatList(
-                        chatProvider.filteredChats,
+                        chatProvider.filteredChats
+                            .where((chat) => !chatProvider.isArchived(chat.id))
+                            .toList(),
                         chatProvider.currentUserId!,
                       ),
-                      // Unread Chats
+                      // Unread Chats (non-archived)
                       _buildChatList(
                         chatProvider.filteredChats.where((chat) {
                           final lastIndex =
                               chat.lastMessageIndex[chatProvider
                                   .currentUserId!] ??
                               -1;
-                          return lastIndex < chat.messages.length - 1;
+                          return lastIndex < chat.messages.length - 1 &&
+                              !chatProvider.isArchived(chat.id);
                         }).toList(),
                         chatProvider.currentUserId!,
                       ),
-                      // Read Chats
+                      // Read Chats (non-archived)
                       _buildChatList(
                         chatProvider.filteredChats.where((chat) {
                           final lastIndex =
                               chat.lastMessageIndex[chatProvider
                                   .currentUserId!] ??
                               -1;
-                          return lastIndex >= chat.messages.length - 1;
+                          return lastIndex >= chat.messages.length - 1 &&
+                              !chatProvider.isArchived(chat.id);
                         }).toList(),
+                        chatProvider.currentUserId!,
+                      ),
+                      // Government Chats (non-archived)
+                      _buildChatList(
+                        chatProvider.filteredChats.where((chat) {
+                          final otherUserName = chat.getOtherUserName(
+                            chatProvider.currentUserId!,
+                          );
+                          return otherUserName.toLowerCase().endsWith(
+                                '(government official)',
+                              ) &&
+                              !chatProvider.isArchived(chat.id);
+                        }).toList(),
+                        chatProvider.currentUserId!,
+                      ),
+                      // Archived Chats (only archived)
+                      _buildChatList(
+                        chatProvider.filteredChats
+                            .where((chat) => chatProvider.isArchived(chat.id))
+                            .toList(),
                         chatProvider.currentUserId!,
                       ),
                     ],
@@ -151,13 +213,68 @@ class ChatGrid extends StatelessWidget {
             );
           },
         ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF1C2F41),
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          elevation: 0,
+          currentIndex: 1, 
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.of(context).pushReplacementNamed('/feed');
+            }
+            if (index == 2) {
+              Navigator.of(context).pushReplacementNamed('/notifications');
+            }
+            if (index == 3) {
+              Navigator.of(context).pushReplacementNamed('/profile');
+            }
+            if (index == 4) {
+              Navigator.of(context).pushReplacementNamed('/adReview');
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined, size: 28),
+              activeIcon: Icon(Icons.home, size: 28),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.message_outlined, size: 28),
+              activeIcon: Icon(Icons.message, size: 28),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_none, size: 28),
+              activeIcon: Icon(Icons.notifications, size: 28),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.menu, size: 28),
+              activeIcon: Icon(Icons.menu, size: 28),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.ads_click_outlined, size: 28),
+              activeIcon: Icon(Icons.ads_click, size: 28),
+              label: '',
+            ),
+          ],
+        ),
       ),
     );
   }
 
-Widget _buildChatList(List<Chat> chats, String userId) {
-  return chats.isEmpty
-      ? Center(
+  String _getCountText(int count) {
+    return count > 0 ? '  $count' : '';
+  }
+
+  Widget _buildChatList(List<Chat> chats, String userId) {
+    return chats.isEmpty
+        ? Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -186,26 +303,26 @@ Widget _buildChatList(List<Chat> chats, String userId) {
             ],
           ),
         )
-      : ListView.builder(
+        : ListView.builder(
           itemCount: chats.length,
           itemBuilder: (context, index) {
             final chat = chats[index];
             return ChatWidget(chat: chat, userId: userId);
           },
         );
-}
+  }
 }
 
 void _showAddChatOptions(BuildContext context) {
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color.fromARGB(255, 41, 59, 94),
+    backgroundColor: const Color(0xFF0E1621),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (BuildContext context) {
       return Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

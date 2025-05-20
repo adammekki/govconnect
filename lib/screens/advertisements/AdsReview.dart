@@ -311,6 +311,58 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                   );
                 },
               ),
+
+                    bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF1C2F41),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        elevation: 0,
+        currentIndex: 4,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.of(context).pushReplacementNamed('/feed');
+          }
+          if (index == 1) {
+            Navigator.of(context).pushReplacementNamed('/chat');
+          }
+          if (index == 2) {
+            Navigator.of(context).pushReplacementNamed('/notifications');
+          }
+          if (index == 3) {
+            Navigator.of(context).pushReplacementNamed('/profile');
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined, size: 28),
+            activeIcon: Icon(Icons.home, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message_outlined, size: 28),
+            activeIcon: Icon(Icons.message, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none, size: 28),
+            activeIcon: Icon(Icons.notifications, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu, size: 28),
+            activeIcon: Icon(Icons.menu, size: 28),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.ads_click_outlined, size: 28),
+            activeIcon: Icon(Icons.ads_click, size: 28),
+            label: '',
+          ),
+        ],
+      ),
     );
   }
 
