@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:govconnect/Polls/PollCommentTile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:profanity_filter/profanity_filter.dart';
 
 class Pollcard extends StatefulWidget {
   final Polls poll;
@@ -50,34 +51,36 @@ class _PollCardState extends State<Pollcard> {
   }
 
   Future<void> _fetchCreatorFullName() async {
-  try {
-    final doc = await FirebaseFirestore.instance
-        .collection('polls')
-        .doc(widget.poll.pollId)
-        .get();
-    
-    if (!mounted) return; // Check if widget is still mounted before setting state
-    
-    final data = doc.data();
-    if (data?['createdBy'] != null) {
-      setState(() {
-        _creatorFullName = data?['createdBy'];
-      });
-    } else {
-      // Fallback if fullName field doesn't exist
-      setState(() {
-        _creatorFullName = data?['createdBy'] ?? 'User1';
-      });
-    }
-  } catch (e) {
-    if (mounted) {
-      setState(() {
-        _creatorFullName = 'User2'; // Fallback on error
-      });
-      print('Error fetching user name: $e');
+    try {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('polls')
+              .doc(widget.poll.pollId)
+              .get();
+
+      if (!mounted)
+        return; // Check if widget is still mounted before setting state
+
+      final data = doc.data();
+      if (data?['createdBy'] != null) {
+        setState(() {
+          _creatorFullName = data?['createdBy'];
+        });
+      } else {
+        // Fallback if fullName field doesn't exist
+        setState(() {
+          _creatorFullName = data?['createdBy'] ?? 'User1';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _creatorFullName = 'User2'; // Fallback on error
+        });
+        print('Error fetching user name: $e');
+      }
     }
   }
-}
 
   void _showPollOptionsMenu(BuildContext context) {
     showModalBottomSheet(
@@ -271,7 +274,7 @@ class _PollCardState extends State<Pollcard> {
     );
   }
 
-void _showPollCommentDialog(BuildContext context) {
+  void _showPollCommentDialog(BuildContext context) {
     const cardColor = Color(0xFF1A1B26);
     const accentColor = Color(0xFF7AA2F7);
     const textColorPrimary = Colors.white;
@@ -338,7 +341,69 @@ void _showPollCommentDialog(BuildContext context) {
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.send, color: accentColor),
                       onPressed: () async {
-                        if (commentController.text.trim().isEmpty) return;
+                        final commentText = commentController.text.trim();
+                        if (commentText.isEmpty) return;
+
+                        final customDictionary =
+                            [
+                              // Arabic profanity words
+                              'كلمة_سيئة',
+                              'شتيمة',
+                              'لعنة',
+                              'قذر',
+                              'سخيف',
+                              'تباً',
+                              'تفو',
+                              'أحمق',
+                              'كلب',
+                              'حمار',
+                              'خنزير',
+                              'حقير',
+                              'وقح',
+                              'تافه',
+                              'غبي',
+                              'مجنون',
+                              'سافل',
+                              'نذل',
+                              'منحرف',
+                              'نجس',
+                              'واطي',
+                              'مقرف',
+                              'ملعون',
+                              'مخنث',
+                              'شرموطة',
+                              'زاني',
+                              'زانية',
+                              'زفت',
+                              'عرص',
+                              'متخلف',
+                              'معفن',
+                              'مزبلة',
+                              'كس',
+                              'طيز',
+                              'نيك',
+                              'منيوك',
+                              'قحبة',
+                              'شرموط',
+                              'بعبص',
+                              'زق',
+                              'عرصة',
+                              'زب',
+                            ];
+
+                        final filter = ProfanityFilter.filterAdditionally(customDictionary);
+                       
+                        if (filter.hasProfanity(commentText)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Your comment contains inappropriate language and cannot be posted.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
 
                         try {
                           final provider = Provider.of<Pollproviders>(
@@ -347,7 +412,7 @@ void _showPollCommentDialog(BuildContext context) {
                           );
                           await provider.addComment(
                             widget.poll.pollId,
-                            commentController.text.trim(),
+                            commentText,
                             isAnonymous.value,
                           );
                           if (mounted) {
