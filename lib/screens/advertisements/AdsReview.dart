@@ -86,29 +86,40 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : StreamBuilder<QuerySnapshot>(
-                stream: _userRole == 'government'
-                    ? FirebaseFirestore.instance
-                        .collection('ads')
-                        .orderBy('createdAt', descending: true)
-                        .snapshots()
-                    : FirebaseFirestore.instance
-                        .collection('ads')
-                        .orderBy('createdAt', descending: true)
-                        .where('postedBy', isEqualTo: currentUser?.uid)
-                        .snapshots(),
+                stream:
+                    _userRole == 'government'
+                        ? FirebaseFirestore.instance
+                            .collection('ads')
+                            .orderBy('createdAt', descending: true)
+                            .snapshots()
+                        : FirebaseFirestore.instance
+                            .collection('ads')
+                            .orderBy('createdAt', descending: true)
+                            .where('postedBy', isEqualTo: currentUser?.uid)
+                            .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.white)));
+                    return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
                   }
 
                   final ads = snapshot.data?.docs ?? [];
 
                   if (ads.isEmpty) {
-                    return const Center(child: Text('No ads pending review', style: TextStyle(color: Colors.white70)));
+                    return const Center(
+                      child: Text(
+                        'No ads pending review',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    );
                   }
 
                   return ListView.builder(
@@ -152,15 +163,18 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         FutureBuilder<DocumentSnapshot>(
                                           future:
                                               FirebaseFirestore.instance
-                                                  .collection(
-                                                    'Users',
-                                                  )
+                                                  .collection('Users')
                                                   .doc(ad.postedBy)
                                                   .get(),
                                           builder: (context, userSnapshot) {
                                             if (userSnapshot.connectionState ==
                                                 ConnectionState.waiting) {
-                                              return const Text('Loading...', style: TextStyle(color: Colors.white));
+                                              return const Text(
+                                                'Loading...',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              );
                                             }
                                             final userData =
                                                 userSnapshot.data?.data()
@@ -185,7 +199,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         ),
                                       ],
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -203,7 +217,9 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         errorBuilder:
                                             (context, error, stackTrace) =>
                                                 Container(
-                                                  color: const Color(0xFF232B3E),
+                                                  color: const Color(
+                                                    0xFF232B3E,
+                                                  ),
                                                   child: const Center(
                                                     child: Icon(
                                                       Icons.error,
@@ -216,7 +232,10 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         color: const Color(0xFF232B3E),
                                         height: 180,
                                         child: const Center(
-                                          child: Icon(Icons.broken_image, color: Colors.white38),
+                                          child: Icon(
+                                            Icons.broken_image,
+                                            color: Colors.white38,
+                                          ),
                                         ),
                                       ),
                             ),
@@ -236,7 +255,12 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(ad.description, style: const TextStyle(color: Colors.white70)),
+                                  Text(
+                                    ad.description,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -255,8 +279,9 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         onPressed:
                                             () => _updateAdStatus(ad.id, true),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              const Color(0xFF7AA2F7),
+                                          backgroundColor: const Color(
+                                            0xFF7AA2F7,
+                                          ),
                                           foregroundColor: Colors.white,
                                         ),
                                         child: const Text('Accept'),
@@ -268,9 +293,12 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         onPressed:
                                             () => _updateAdStatus(ad.id, false),
                                         style: OutlinedButton.styleFrom(
-                                          foregroundColor:
-                                              const Color(0xFF7AA2F7),
-                                          side: const BorderSide(color: Color(0xFF7AA2F7)),
+                                          foregroundColor: const Color(
+                                            0xFF7AA2F7,
+                                          ),
+                                          side: const BorderSide(
+                                            color: Color(0xFF7AA2F7),
+                                          ),
                                         ),
                                         child: const Text('Decline'),
                                       ),
@@ -278,9 +306,9 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                   ],
                                 ),
                               ),
-                            if(_userRole == 'advertiser')
+                            if (_userRole == 'advertiser')
                               ad.isApproved == true
-                                ? const Padding(
+                                  ? const Padding(
                                     padding: EdgeInsets.all(12),
                                     child: Text(
                                       'Ad Approved',
@@ -290,7 +318,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                       ),
                                     ),
                                   )
-                                : const Padding(
+                                  : const Padding(
                                     padding: EdgeInsets.all(12),
                                     child: Text(
                                       'Ad Pending Review',
@@ -299,7 +327,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         color: Colors.yellow,
                                       ),
                                     ),
-                                  )
+                                  ),
                           ],
                         ),
                       );
@@ -308,7 +336,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                 },
               ),
 
-                    bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF1C2F41),
         selectedItemColor: Colors.white,
@@ -316,7 +344,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
-        currentIndex: 4,
+        currentIndex: 3,
         onTap: (index) {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed('/feed');
@@ -327,7 +355,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
           if (index == 2) {
             Navigator.of(context).pushReplacementNamed('/notifications');
           }
-          if (index == 3) {
+          if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
         },
@@ -347,15 +375,15 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
+          if (_userRole != 'citizen')
+            BottomNavigationBarItem(
+              icon: Icon(Icons.ads_click_outlined, size: 28),
+              activeIcon: Icon(Icons.ads_click, size: 28),
+              label: '',
+            ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu, size: 28),
-            activeIcon: Icon(Icons.menu, size: 28),
-            label: '',
-          ),
-          if(_userRole == 'advertiser') 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.ads_click_outlined, size: 28),
-            activeIcon: Icon(Icons.ads_click, size: 28),
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
             label: '',
           ),
         ],

@@ -22,9 +22,9 @@ class _ChatGridState extends State<ChatGrid> {
     _fetchUserRole();
   }
 
-    String? _userRole;
+  String? _userRole;
 
-    Future<void> _fetchUserRole() async {
+  Future<void> _fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc =
@@ -244,7 +244,7 @@ class _ChatGridState extends State<ChatGrid> {
           showSelectedLabels: false,
           showUnselectedLabels: false,
           elevation: 0,
-          currentIndex: 1, 
+          currentIndex: 1,
           onTap: (index) {
             if (index == 0) {
               Navigator.of(context).pushReplacementNamed('/feed');
@@ -252,41 +252,42 @@ class _ChatGridState extends State<ChatGrid> {
             if (index == 2) {
               Navigator.of(context).pushReplacementNamed('/notifications');
             }
-            if (index == 3) {
+            if (index == 4) {
               Navigator.of(context).pushReplacementNamed('/profile');
             }
-            if (index == 4) {
+            if (index == 3) {
               Navigator.of(context).pushReplacementNamed('/adReview');
             }
           },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined, size: 28),
-            activeIcon: Icon(Icons.home, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined, size: 28),
-            activeIcon: Icon(Icons.message, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none, size: 28),
-            activeIcon: Icon(Icons.notifications, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu, size: 28),
-            activeIcon: Icon(Icons.menu, size: 28),
-            label: '',
-          ),
-          if(_userRole == 'advertiser') 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.ads_click_outlined, size: 28),
-            activeIcon: Icon(Icons.ads_click, size: 28),
-            label: '',
-          ),
-        ],
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined, size: 28),
+              activeIcon: Icon(Icons.home, size: 28),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.message_outlined, size: 28),
+              activeIcon: Icon(Icons.message, size: 28),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_none, size: 28),
+              activeIcon: Icon(Icons.notifications, size: 28),
+              label: '',
+            ),
+
+            if (_userRole != 'citizen')
+              BottomNavigationBarItem(
+                icon: Icon(Icons.ads_click_outlined, size: 28),
+                activeIcon: Icon(Icons.ads_click, size: 28),
+                label: '',
+              ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline_rounded, size: 28),
+              activeIcon: Icon(Icons.person, size: 28),
+              label: '',
+            ),
+          ],
         ),
       ),
     );

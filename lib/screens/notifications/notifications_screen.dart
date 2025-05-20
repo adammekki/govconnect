@@ -6,7 +6,6 @@ import '../../models/notification_message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
 
@@ -15,9 +14,9 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-    String? _userRole;
+  String? _userRole;
 
-    Future<void> _fetchUserRole() async {
+  Future<void> _fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc =
@@ -30,6 +29,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -198,10 +198,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (index == 1) {
             Navigator.of(context).pushReplacementNamed('/chat');
           }
-          if (index == 3) {
+          if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
-          if (index == 4) {
+          if (index == 3) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
@@ -221,17 +221,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu, size: 28),
-            activeIcon: Icon(Icons.menu, size: 28),
-            label: '',
-          ),
-          if (_userRole == 'advertiser')
+          if (_userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
             ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
+            label: '',
+          ),
         ],
       ),
     );

@@ -73,12 +73,22 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  void _navigateToSubmitAd() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SubmitAdScreen()),
-    );
+  bool _isCreatingAd = false;
+
+  void _showCreateAdDialog() {
+    setState(() {
+      _isCreatingAd = true;
+    });
   }
+
+  void _hideCreateAdDialog() {
+    setState(() {
+      _isCreatingAd = false;
+    });
+  }
+
+  // Update the onPressed in the advertiser action button:
+  // onPressed: _showCreateAdDialog,
 
   List<Widget> _buildFeedItems(List announcements, List polls, List ads) {
     List<Widget> feedItems = [];
@@ -240,8 +250,28 @@ class _FeedScreenState extends State<FeedScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  onPressed: _navigateToSubmitAd,
+                  onPressed: _showCreateAdDialog,
                   icon: const Icon(Icons.add, color: Colors.orange),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(4),
+                ),
+              ),
+            ),
+          if (_userRole == 'citizen')
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/reportProblem');
+                  },
+                  icon: const Icon(Icons.add, color: Colors.green),
                   iconSize: 24,
                   padding: const EdgeInsets.all(4),
                 ),
@@ -278,6 +308,18 @@ class _FeedScreenState extends State<FeedScreen> {
                 _hideCreatePostDialog();
               },
             ),
+          if (_isCreatingAd)
+            CreateAdDialog(
+              onClose: _hideCreateAdDialog,
+              onAdCreated: () {
+                _hideCreateAdDialog();
+                // Refresh ads
+                Provider.of<AdProvider>(
+                  context,
+                  listen: false,
+                ).fetchApprovedAds();
+              },
+            ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -296,10 +338,10 @@ class _FeedScreenState extends State<FeedScreen> {
           if (index == 2) {
             Navigator.of(context).pushReplacementNamed('/notifications');
           }
-          if (index == 3) {
+          if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
-          if (index == 4) {
+          if (index == 3) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
@@ -319,17 +361,18 @@ class _FeedScreenState extends State<FeedScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu, size: 28),
-            activeIcon: Icon(Icons.menu, size: 28),
-            label: '',
-          ),
-          if (_userRole == 'advertiser')
+
+          if (_userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
             ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
+            label: '',
+          ),
         ],
       ),
     );

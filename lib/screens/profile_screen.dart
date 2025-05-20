@@ -14,20 +14,15 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  String? _userRole; // Move this to be a class field
 
   @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final userDataFuture = FirebaseFirestore.instance
-        .collection('Users')
-        .doc(user?.uid)
-        .get()
-        .then((doc) => doc.data());
-    final provider = Provider.of<ProblemReportProvider>(context);
+  void initState() {
+    super.initState();
+    _fetchUserRole(); // Keep this in initState
+  }
 
-    String? _userRole;
-
-    Future<void> _fetchUserRole() async {
+  Future<void> _fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc =
@@ -41,11 +36,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-    @override
-  void initState() {
-    super.initState();
-    _fetchUserRole();
-  }
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userDataFuture = FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user?.uid)
+        .get()
+        .then((doc) => doc.data());
+    final provider = Provider.of<ProblemReportProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0E1621),
@@ -57,9 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.only(left: 16.0),
           child: Icon(Icons.account_balance, color: Colors.white, size: 28),
         ),
-        actions: [
-
-        ],
+        actions: [],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: userDataFuture,
@@ -146,12 +143,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Text(
                                       userData['role'] == 'government'
                                           ? 'Government Official'
-                                          : 'Citizen',
+                                          : userData['role'] == 'citizen'
+                                          ? 'Citizen'
+                                          : 'Advertiser',
                                       style: TextStyle(
                                         color:
                                             userData['role'] == 'government'
                                                 ? Colors.blue
-                                                : Colors.green,
+                                                : userData['role'] == 'citizen'
+                                                ? Colors.green
+                                                : Colors.orange,
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -306,7 +307,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
-        currentIndex: 3,
+        currentIndex: 4,
         onTap: (index) {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed('/feed');
@@ -317,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (index == 2) {
             Navigator.of(context).pushReplacementNamed('/notifications');
           }
-          if (index == 4) {
+          if (index == 3) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
@@ -337,15 +338,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
+          if (_userRole != 'citizen')
+            BottomNavigationBarItem(
+              icon: Icon(Icons.ads_click_outlined, size: 28),
+              activeIcon: Icon(Icons.ads_click, size: 28),
+              label: '',
+            ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu, size: 28),
-            activeIcon: Icon(Icons.menu, size: 28),
-            label: '',
-          ),
-          if(_userRole  == 'advertiser') 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.ads_click_outlined, size: 28),
-            activeIcon: Icon(Icons.ads_click, size: 28),
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
             label: '',
           ),
         ],
