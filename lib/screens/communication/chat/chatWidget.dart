@@ -92,6 +92,8 @@ class ChatWidget extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1
                   ),
                   Text(
                     lastMessage != null ? _formatTime(lastMessage.time) : '',

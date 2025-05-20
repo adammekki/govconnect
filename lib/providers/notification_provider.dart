@@ -85,6 +85,7 @@ class NotificationProvider with ChangeNotifier {
       notifyListeners();
 
       print('DEBUG: Loading notifications for user: ${user.uid}');
+      print('DEBUG: Current user UID: ${user.uid}');
 
       // First check if the user is a government official
       final userDoc = await _firestore.collection('Users').doc(user.uid).get();
@@ -263,11 +264,119 @@ class NotificationProvider with ChangeNotifier {
     required String status,
     required String userId,
   }) async {
-    await createNotification(
-      title: 'Problem Status Update',
-      body: 'Problem "$problemTitle" status has been updated to: $status',
-      type: 'problem_update',
-      userId: userId,
-    );
+    try {
+      // Create notification document
+      final notification = NotificationMessage(
+        id: '',
+        title: 'Problem Status Update',
+        body: 'Your reported problem "$problemTitle" status has been updated to: $status',
+        type: 'problem_update',
+        read: false,
+        createdAt: DateTime.now(),
+        userId: userId,
+      );
+
+      await _firestore.collection('notifications').add(notification.toMap());
+
+      // Get the user's FCM token
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
+      final token = userDoc.data()?['fcmToken'] as String?;
+
+      // Send FCM notification if token exists
+      if (token != null) {
+        await _messaging.sendMessage(
+          to: token,
+          data: {
+            'type': 'problem_update',
+            'title': 'Problem Status Update',
+            'body': 'Your reported problem "$problemTitle" status has been updated to: $status',
+          },
+        );
+      }
+
+      await loadNotifications();
+    } catch (e) {
+      print('Error creating problem update notification: $e');
+    }
+  }
+
+  Future<void> createPollResultNotification({
+    required String pollTitle,
+    required String userId,
+  }) async {
+    try {
+      // Create notification document
+      final notification = NotificationMessage(
+        id: '',
+        title: 'Poll Results Available',
+        body: 'Results for poll "$pollTitle" are now available',
+        type: 'poll_result',
+        read: false,
+        createdAt: DateTime.now(),
+        userId: userId,
+      );
+
+      await _firestore.collection('notifications').add(notification.toMap());
+
+      // Get the user's FCM token
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
+      final token = userDoc.data()?['fcmToken'] as String?;
+
+      // Send FCM notification if token exists
+      if (token != null) {
+        await _messaging.sendMessage(
+          to: token,
+          data: {
+            'type': 'poll_result',
+            'title': 'Poll Results Available',
+            'body': 'Results for poll "$pollTitle" are now available',
+          },
+        );
+      }
+
+      await loadNotifications();
+    } catch (e) {
+      print('Error creating poll result notification: $e');
+    }
+  }
+
+  Future<void> createIssueResolvedNotification({
+    required String issueTitle,
+    required String userId,
+  }) async {
+    try {
+      // Create notification document
+      final notification = NotificationMessage(
+        id: '',
+        title: 'Issue Resolved',
+        body: 'Your reported issue "$issueTitle" has been resolved',
+        type: 'issue_resolved',
+        read: false,
+        createdAt: DateTime.now(),
+        userId: userId,
+      );
+
+      await _firestore.collection('notifications').add(notification.toMap());
+
+      // Get the user's FCM token
+      final userDoc = await _firestore.collection('Users').doc(userId).get();
+      final token = userDoc.data()?['fcmToken'] as String?;
+
+      // Send FCM notification if token exists
+      if (token != null) {
+        await _messaging.sendMessage(
+          to: token,
+          data: {
+            'type': 'issue_resolved',
+            'title': 'Issue Resolved',
+            'body': 'Your reported issue "$issueTitle" has been resolved',
+          },
+        );
+      }
+
+      await loadNotifications();
+    } catch (e) {
+      print('Error creating issue resolved notification: $e');
+    }
   }
 }

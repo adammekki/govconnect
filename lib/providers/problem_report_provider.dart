@@ -154,28 +154,33 @@ class ProblemReportProvider with ChangeNotifier {
         throw Exception('Only government officials can update problem status');
       }
 
+      // Get the report data first
+      final reportDoc = await _firestore.collection('problem_reports').doc(reportId).get();
+      if (!reportDoc.exists) {
+        throw Exception('Report not found');
+      }
+
+      final reportData = reportDoc.data()!;
+      final reportTitle = reportData['title'] as String;
+      final reportOwnerId = reportData['userId'] as String;
+
+      // Update the report status
       await _firestore.collection('problem_reports').doc(reportId).update({
         'status': newStatus,
         'updatedAt': FieldValue.serverTimestamp(),
         'updatedBy': _currentUserId,
       });
 
-      // Get the report owner's ID to send notification
-      final reportDoc = await _firestore.collection('problem_reports').doc(reportId).get();
-      final reportOwnerId = reportDoc.data()?['userId'];
+      // Send notification to the report owner using NotificationProvider
+      final notificationProvider = NotificationProvider();
+      await notificationProvider.createProblemUpdateNotification(
+        problemTitle: reportTitle,
+        status: newStatus,
+        userId: reportOwnerId,
+      );
 
-      // Add notification for the report owner
-      if (reportOwnerId != null) {
-        await _firestore.collection('notifications').add({
-          'userId': reportOwnerId,
-          'title': 'Problem Report Update',
-          'body': 'Your report status has been updated to: ${newStatus.toUpperCase()}',
-          'type': 'problem_update',
-          'reportId': reportId,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
     } catch (e) {
+      print('Error updating problem status: $e');
       throw Exception('Failed to update problem status: $e');
     }
   }

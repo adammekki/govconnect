@@ -3,6 +3,7 @@ import 'package:govconnect/screens/notifications/notifications_card.dart';
 import 'package:provider/provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification_message.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -47,6 +48,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'advertisement':
         Navigator.pushNamed(context, '/advertisements');
         break;
+      case 'poll_result':
+        Navigator.pushNamed(context, '/polls');
+        break;
+      case 'issue_resolved':
+        Navigator.pushNamed(context, '/problems');
+        break;
     }
   }
 
@@ -62,6 +69,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
+          // Test button (only visible in debug mode)
+          if (const bool.fromEnvironment('dart.vm.product') == false)
           TextButton(
             onPressed: () {
               Provider.of<NotificationProvider>(context, listen: false).markAllAsRead();
@@ -116,4 +125,3 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 }
-
