@@ -342,7 +342,7 @@ class _FeedScreenState extends State<FeedScreen> {
             activeIcon: Icon(Icons.person, size: 28),
             label: '',
           ),
-          if (_userRole != 'citizen')
+          if (_userRole != null && _userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),

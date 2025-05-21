@@ -84,7 +84,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
             Icons.account_balance,
             color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pushReplacementNamed('/feed'),
         ),
         title: Text(
           'Ads Submission Review',
@@ -369,7 +369,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
             activeIcon: Icon(Icons.person, size: 28),
             label: '',
           ),
-          if (_userRole != 'citizen')
+          if (_userRole != null && _userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),

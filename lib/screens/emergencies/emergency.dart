@@ -38,9 +38,14 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.account_balance, color: Colors.white),
-          onPressed: () => Navigator.of(context).pushNamed('/feed'),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: IconButton(
+            icon: Icon(Icons.account_balance, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('/feed');
+            },
+          ),
         ),
       ),
       body: Consumer<EmergencyProvider>(
