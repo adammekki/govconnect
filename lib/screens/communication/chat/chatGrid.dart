@@ -252,10 +252,10 @@ class _ChatGridState extends State<ChatGrid> {
             if (index == 2) {
               Navigator.of(context).pushReplacementNamed('/notifications');
             }
-            if (index == 4) {
+            if (index == 3) {
               Navigator.of(context).pushReplacementNamed('/profile');
             }
-            if (index == 3) {
+            if (index == 4) {
               Navigator.of(context).pushReplacementNamed('/adReview');
             }
           },
@@ -275,18 +275,17 @@ class _ChatGridState extends State<ChatGrid> {
               activeIcon: Icon(Icons.notifications, size: 28),
               label: '',
             ),
-
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline_rounded, size: 28),
+              activeIcon: Icon(Icons.person, size: 28),
+              label: '',
+            ),
             if (_userRole != 'citizen')
               BottomNavigationBarItem(
                 icon: Icon(Icons.ads_click_outlined, size: 28),
                 activeIcon: Icon(Icons.ads_click, size: 28),
                 label: '',
               ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded, size: 28),
-              activeIcon: Icon(Icons.person, size: 28),
-              label: '',
-            ),
           ],
         ),
       ),

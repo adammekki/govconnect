@@ -8,13 +8,14 @@ class EmergencyContactsScreen extends StatefulWidget {
   const EmergencyContactsScreen({Key? key}) : super(key: key);
 
   @override
-  State<EmergencyContactsScreen> createState() => _EmergencyContactsScreenState();
+  State<EmergencyContactsScreen> createState() =>
+      _EmergencyContactsScreenState();
 }
 
 class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  
+
   @override
   void initState() {
     super.initState();
@@ -33,17 +34,13 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1C2F41),
+      backgroundColor: const Color(0xFF0E1621),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C2F41),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.account_balance, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Emergency Contacts',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          onPressed: () => Navigator.of(context).pushNamed('/feed'),
         ),
       ),
       body: Consumer<EmergencyProvider>(
@@ -57,15 +54,34 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
             );
           }
 
-          final filteredContacts = provider.emergencyContacts
-              .where((contact) => 
-                contact.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                contact.category.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                contact.phoneNumber.contains(_searchQuery))
-              .toList();
+          final filteredContacts =
+              provider.emergencyContacts
+                  .where(
+                    (contact) =>
+                        contact.title.toLowerCase().contains(
+                          _searchQuery.toLowerCase(),
+                        ) ||
+                        contact.category.toLowerCase().contains(
+                          _searchQuery.toLowerCase(),
+                        ) ||
+                        contact.phoneNumber.contains(_searchQuery),
+                  )
+                  .toList();
 
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 0),
+                child: Text(
+                  'Emergency Contact',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 35,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
@@ -92,90 +108,138 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => provider.fetchEmergencyContacts(),
-                  child: filteredContacts.isEmpty
-                      ? Center(
-                          child: Text(
-                            _searchQuery.isEmpty
-                                ? 'No emergency contacts available'
-                                : 'No contacts match your search',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: filteredContacts.length,
-                          itemBuilder: (context, index) {
-                            final contact = filteredContacts[index];
-                            return Card(
-                              color: const Color(0xFF181B2C),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              child: ListTile(
-                                leading: const CircleAvatar(
-                                  backgroundColor: Colors.blueGrey,
-                                  child: Icon(Icons.phone, color: Colors.white),
+                  child:
+                      filteredContacts.isEmpty
+                          ? Center(
+                            child: Text(
+                              _searchQuery.isEmpty
+                                  ? 'No emergency contacts available'
+                                  : 'No contacts match your search',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          )
+                          : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredContacts.length,
+                            itemBuilder: (context, index) {
+                              final contact = filteredContacts[index];
+                              return Card(
+                                color: const Color(0xFF181B2C),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                title: Text(
-                                  contact.title, 
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
-                                ),
-                                subtitle: Text(
-                                  contact.category, 
-                                  style: const TextStyle(color: Colors.white70)
-                                ),
-                                trailing: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: 280, minHeight: 36, maxHeight: 36),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      if (provider.isGovernment) ...[
-                                        IconButton(
-                                          icon: const Icon(Icons.edit, color: Colors.white70),
-                                          onPressed: () => _showEditDialog(context, provider, contact),
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(8),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: Colors.white70),
-                                          onPressed: () => _showDeleteDialog(context, provider, contact),
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.all(8),
-                                        ),
-                                      ],
-                                      Flexible(
-                                        child: ElevatedButton.icon(
-                                          onPressed: () async {
-                                            final Uri phoneUri = Uri(scheme: 'tel', path: contact.phoneNumber);
-                                            if (await canLaunchUrl(phoneUri)) {
-                                              await launchUrl(phoneUri);
-                                            }
-                                          },
-                                          icon: const Icon(Icons.call, size: 16),
-                                          label: Text(
-                                            contact.phoneNumber,
-                                            style: const TextStyle(fontSize: 12),
-                                            overflow: TextOverflow.ellipsis,
+                                child: ListTile(
+                                  leading: const CircleAvatar(
+                                    backgroundColor: Colors.blueGrey,
+                                    child: Icon(
+                                      Icons.phone,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    contact.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    contact.category,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                  trailing: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 280,
+                                      minHeight: 36,
+                                      maxHeight: 36,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        if (provider.isGovernment) ...[
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.white70,
+                                            ),
+                                            onPressed:
+                                                () => _showEditDialog(
+                                                  context,
+                                                  provider,
+                                                  contact,
+                                                ),
+                                            constraints: const BoxConstraints(),
+                                            padding: const EdgeInsets.all(8),
                                           ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                            minimumSize: const Size(0, 36),
-                                            maximumSize: const Size(200, 36),
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(18),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: Colors.white70,
+                                            ),
+                                            onPressed:
+                                                () => _showDeleteDialog(
+                                                  context,
+                                                  provider,
+                                                  contact,
+                                                ),
+                                            constraints: const BoxConstraints(),
+                                            padding: const EdgeInsets.all(8),
+                                          ),
+                                        ],
+                                        Flexible(
+                                          child: ElevatedButton.icon(
+                                            onPressed: () async {
+                                              final Uri phoneUri = Uri(
+                                                scheme: 'tel',
+                                                path: contact.phoneNumber,
+                                              );
+                                              if (await canLaunchUrl(
+                                                phoneUri,
+                                              )) {
+                                                await launchUrl(phoneUri);
+                                              }
+                                            },
+                                            icon: const Icon(
+                                              Icons.call,
+                                              size: 16,
+                                            ),
+                                            label: Text(
+                                              contact.phoneNumber,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 0,
+                                                  ),
+                                              minimumSize: const Size(0, 36),
+                                              maximumSize: const Size(200, 36),
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(18),
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
+                              );
+                            },
+                          ),
                 ),
               ),
             ],
@@ -195,7 +259,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     );
   }
 
-  Future<void> _showAddDialog(BuildContext context, EmergencyProvider provider) async {
+  Future<void> _showAddDialog(
+    BuildContext context,
+    EmergencyProvider provider,
+  ) async {
     final titleController = TextEditingController();
     final phoneController = TextEditingController();
     final categoryController = TextEditingController();
@@ -204,143 +271,171 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: const Color(0xFF1C2F41),
-          title: const Text('Add Emergency Contact', style: TextStyle(color: Colors.white)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF181B2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  backgroundColor: const Color(0xFF1C2F41),
+                  title: const Text(
+                    'Add Emergency Contact',
+                    style: TextStyle(color: Colors.white),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: phoneController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF181B2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: categoryController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Category',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF181B2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
-            ),
-            ElevatedButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      if (titleController.text.isEmpty ||
-                          phoneController.text.isEmpty ||
-                          categoryController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please fill in all fields'),
-                            backgroundColor: Colors.red,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: titleController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Title',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color(0xFF181B2C),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
-                        );
-                        return;
-                      }
-
-                      setState(() => isLoading = true);
-
-                      try {
-                        await provider.addEmergencyContact(
-                          EmergencyContact(
-                            id: '',
-                            title: titleController.text,
-                            phoneNumber: phoneController.text,
-                            category: categoryController.text,
-                            createdBy: provider.currentUserId ?? '',
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
-                        );
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Emergency contact added successfully'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error adding contact: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      } finally {
-                        setState(() => isLoading = false);
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                       ),
-                    )
-                  : const Text('Add'),
-            ),
-          ],
-        ),
-      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: phoneController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color(0xFF181B2C),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: categoryController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Category',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color(0xFF181B2C),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed:
+                          isLoading ? null : () => Navigator.pop(context),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed:
+                          isLoading
+                              ? null
+                              : () async {
+                                if (titleController.text.isEmpty ||
+                                    phoneController.text.isEmpty ||
+                                    categoryController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please fill in all fields',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setState(() => isLoading = true);
+
+                                try {
+                                  await provider.addEmergencyContact(
+                                    EmergencyContact(
+                                      id: '',
+                                      title: titleController.text,
+                                      phoneNumber: phoneController.text,
+                                      category: categoryController.text,
+                                      createdBy: provider.currentUserId ?? '',
+                                    ),
+                                  );
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Emergency contact added successfully',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Error adding contact: $e',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  setState(() => isLoading = false);
+                                }
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      child:
+                          isLoading
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text('Add'),
+                    ),
+                  ],
+                ),
+          ),
     );
   }
 
   Future<void> _showEditDialog(
-    BuildContext context, 
-    EmergencyProvider provider, 
-    EmergencyContact contact
+    BuildContext context,
+    EmergencyProvider provider,
+    EmergencyContact contact,
   ) async {
     final titleController = TextEditingController(text: contact.title);
     final phoneController = TextEditingController(text: contact.phoneNumber);
@@ -350,191 +445,226 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: const Color(0xFF1C2F41),
-          title: const Text('Edit Emergency Contact', style: TextStyle(color: Colors.white)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF181B2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  backgroundColor: const Color(0xFF1C2F41),
+                  title: const Text(
+                    'Edit Emergency Contact',
+                    style: TextStyle(color: Colors.white),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: phoneController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF181B2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: categoryController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Category',
-                  labelStyle: const TextStyle(color: Colors.white70),
-                  filled: true,
-                  fillColor: const Color(0xFF181B2C),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
-            ),
-            ElevatedButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      if (titleController.text.isEmpty ||
-                          phoneController.text.isEmpty ||
-                          categoryController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please fill in all fields'),
-                            backgroundColor: Colors.red,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: titleController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Title',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color(0xFF181B2C),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
-                        );
-                        return;
-                      }
-
-                      setState(() => isLoading = true);
-
-                      try {
-                        await provider.updateEmergencyContact(
-                          contact.id,
-                          EmergencyContact(
-                            id: contact.id,
-                            title: titleController.text,
-                            phoneNumber: phoneController.text,
-                            category: categoryController.text,
-                            createdBy: contact.createdBy,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
-                        );
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Emergency contact updated successfully'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error updating contact: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      } finally {
-                        setState(() => isLoading = false);
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                       ),
-                    )
-                  : const Text('Update'),
-            ),
-          ],
-        ),
-      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: phoneController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color(0xFF181B2C),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: categoryController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Category',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          filled: true,
+                          fillColor: const Color(0xFF181B2C),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed:
+                          isLoading ? null : () => Navigator.pop(context),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed:
+                          isLoading
+                              ? null
+                              : () async {
+                                if (titleController.text.isEmpty ||
+                                    phoneController.text.isEmpty ||
+                                    categoryController.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please fill in all fields',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setState(() => isLoading = true);
+
+                                try {
+                                  await provider.updateEmergencyContact(
+                                    contact.id,
+                                    EmergencyContact(
+                                      id: contact.id,
+                                      title: titleController.text,
+                                      phoneNumber: phoneController.text,
+                                      category: categoryController.text,
+                                      createdBy: contact.createdBy,
+                                    ),
+                                  );
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Emergency contact updated successfully',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Error updating contact: $e',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  setState(() => isLoading = false);
+                                }
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      child:
+                          isLoading
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text('Update'),
+                    ),
+                  ],
+                ),
+          ),
     );
   }
 
   Future<void> _showDeleteDialog(
-    BuildContext context, 
-    EmergencyProvider provider, 
-    EmergencyContact contact
+    BuildContext context,
+    EmergencyProvider provider,
+    EmergencyContact contact,
   ) async {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1C2F41),
-        title: const Text('Delete Contact', style: TextStyle(color: Colors.white)),
-        content: Text(
-          'Are you sure you want to delete ${contact.title}?',
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await provider.deleteEmergencyContact(contact.id);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Emergency contact deleted successfully'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error deleting contact: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1C2F41),
+            title: const Text(
+              'Delete Contact',
+              style: TextStyle(color: Colors.white),
             ),
-            child: const Text('Delete'),
+            content: Text(
+              'Are you sure you want to delete ${contact.title}?',
+              style: const TextStyle(color: Colors.white),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await provider.deleteEmergencyContact(contact.id);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Emergency contact deleted successfully',
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error deleting contact: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

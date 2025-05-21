@@ -284,7 +284,7 @@ void _showPollCommentDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: cardColor,
+      backgroundColor: Color(0xFF1C2F41),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -365,7 +365,7 @@ void _showPollCommentDialog(BuildContext context) {
                         }
                       },
                     ),
-                    fillColor: secondaryColor,
+                    fillColor: Color(0xFF1C2F41),
                     filled: true,
                   ),
                   maxLines: 3,
@@ -454,7 +454,7 @@ void _showPollCommentDialog(BuildContext context) {
 
     return Card(
       margin: const EdgeInsets.all(16.0),
-      color: const Color(0xFF131E2F),
+      color: const Color(0xFF1C2F41),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -530,7 +530,7 @@ void _showPollCommentDialog(BuildContext context) {
                             height: 45,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E2939),
+                              color: const Color.fromARGB(255, 46, 66, 94),
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),

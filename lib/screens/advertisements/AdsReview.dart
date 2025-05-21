@@ -344,7 +344,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
-        currentIndex: 3,
+        currentIndex: 4,
         onTap: (index) {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed('/feed');
@@ -355,7 +355,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
           if (index == 2) {
             Navigator.of(context).pushReplacementNamed('/notifications');
           }
-          if (index == 4) {
+          if (index == 3) {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
         },
@@ -375,17 +375,17 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
+            label: '',
+          ),
           if (_userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
             ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
         ],
       ),
     );

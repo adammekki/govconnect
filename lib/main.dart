@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -114,7 +113,6 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(title: 'GovConnect'),
         '/chat': (context) => const ChatGrid(),
         '/emergencyContacts': (context) => EmergencyContactsScreen(),
-        '/reportProblem': (context) => ReportProblemScreen(),
         '/problems': (context) => ProblemsScreen(),
         '/problemDetail': (context) => ProblemDetailScreen(
          report: ModalRoute.of(context)!.settings.arguments as ProblemReport,

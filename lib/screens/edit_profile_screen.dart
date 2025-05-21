@@ -96,14 +96,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1C2F41),
+      backgroundColor: const Color(0xFF0E1621),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C2F41),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -111,8 +107,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(8.0, 0, 16.0, 16),
+                child: Text(
+                  'Edit Profile',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 35,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               if (_errorMessage != null)
                 Container(
                   padding: const EdgeInsets.all(16),

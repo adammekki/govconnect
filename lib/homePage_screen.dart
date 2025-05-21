@@ -182,16 +182,16 @@ class HomePage extends StatelessWidget {
               label: const Text('View Problems'),
             ),
             const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ReportProblemScreen()),
-                );
-              },
-              icon: const Icon(Icons.report_problem),
-              label: const Text('Report Problem'),
-            ),
+            // ElevatedButton.icon(
+            //   onPressed: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => const ReportProblemScreen()),
+            //     );
+            //   },
+            //   icon: const Icon(Icons.report_problem),
+            //   label: const Text('Report Problem'),
+            // ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: () => signUserOut(context),

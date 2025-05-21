@@ -198,10 +198,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (index == 1) {
             Navigator.of(context).pushReplacementNamed('/chat');
           }
-          if (index == 4) {
+          if (index == 3) {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
-          if (index == 3) {
+          if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
@@ -221,17 +221,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
+            label: '',
+          ),
           if (_userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
             ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
         ],
       ),
     );

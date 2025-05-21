@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/problem_report_provider.dart';
 import 'edit_profile_screen.dart';
+import 'dart:ui';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -224,57 +225,155 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 icon: Icons.logout,
                                 title: 'Sign Out',
                                 onTap: () async {
-                                  // Your existing sign out code here
                                   final confirmed = await showDialog<bool>(
                                     context: context,
                                     builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        backgroundColor: const Color(
-                                          0xFF1C2F41,
+                                      return BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 5,
+                                          sigmaY: 5,
                                         ),
-                                        title: const Text(
-                                          'Sign Out',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        content: const Text(
-                                          'Are you sure you want to sign out?',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                          ),
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
+                                        child: Dialog(
+                                          backgroundColor: Colors.transparent,
+                                          insetPadding: const EdgeInsets.all(
                                             16,
                                           ),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF0E1621),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 16,
+                                                      ),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFF1C2F41),
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                12,
+                                                              ),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                12,
+                                                              ),
+                                                        ),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.logout,
+                                                        color: Colors.white,
+                                                      ),
+                                                      const SizedBox(width: 16),
+                                                      const Text(
+                                                        'Sign Out',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    16,
+                                                  ),
+                                                  child: Column(
+                                                    children: [
+                                                      const Text(
+                                                        'Are you sure you want to sign out?',
+                                                        style: TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 24,
+                                                      ),
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .end,
+                                                        children: [
+                                                          TextButton(
+                                                            onPressed:
+                                                                () =>
+                                                                    Navigator.of(
+                                                                      context,
+                                                                    ).pop(
+                                                                      false,
+                                                                    ),
+                                                            child: const Text(
+                                                              'Cancel',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors
+                                                                        .white70,
+                                                                fontSize: 16,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 16,
+                                                          ),
+                                                          GestureDetector(
+                                                            onTap:
+                                                                () =>
+                                                                    Navigator.of(
+                                                                      context,
+                                                                    ).pop(true),
+                                                            child: Container(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        24,
+                                                                    vertical:
+                                                                        12,
+                                                                  ),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                    color:
+                                                                        Colors
+                                                                            .red,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                          20,
+                                                                        ),
+                                                                  ),
+                                                              child: const Text(
+                                                                'Sign Out',
+                                                                style: TextStyle(
+                                                                  color:
+                                                                      Colors
+                                                                          .white,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed:
-                                                () => Navigator.of(
-                                                  context,
-                                                ).pop(false),
-                                            child: const Text(
-                                              'CANCEL',
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                              ),
-                                            ),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed:
-                                                () => Navigator.of(
-                                                  context,
-                                                ).pop(true),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: const Text('SIGN OUT'),
-                                          ),
-                                        ],
                                       );
                                     },
                                   );
@@ -307,7 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
-        currentIndex: 4,
+        currentIndex: 3,
         onTap: (index) {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed('/feed');
@@ -318,7 +417,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (index == 2) {
             Navigator.of(context).pushReplacementNamed('/notifications');
           }
-          if (index == 3) {
+          if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
@@ -338,17 +437,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
+            label: '',
+          ),
           if (_userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
             ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
         ],
       ),
     );

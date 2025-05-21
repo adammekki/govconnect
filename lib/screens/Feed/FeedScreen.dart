@@ -12,6 +12,7 @@ import 'package:govconnect/providers/AdProvider.dart';
 import 'package:govconnect/screens/advertisements/AdCard.dart';
 import 'package:govconnect/screens/advertisements/AdsSubmission.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:govconnect/screens/problems/report_problem.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -87,6 +88,19 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
+  bool _isCreatingReport = false;
+
+  void _showReportDialog() {
+    setState(() {
+      _isCreatingReport = true;
+    });
+  }
+
+  void _hideReportDialog() {
+    setState(() {
+      _isCreatingReport = false;
+    });
+  }
   // Update the onPressed in the advertiser action button:
   // onPressed: _showCreateAdDialog,
 
@@ -181,7 +195,12 @@ class _FeedScreenState extends State<FeedScreen> {
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
-          child: Icon(Icons.account_balance, color: Colors.white, size: 28),
+          child: IconButton(
+            icon: Icon(Icons.account_balance, color: Colors.white, size: 28)
+            ,onPressed:() {
+              Navigator.of(context).pushReplacementNamed('/emergencyContacts');
+            } 
+          ),
         ),
         title: Container(
           height: 36,
@@ -268,9 +287,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/reportProblem');
-                  },
+                  onPressed: _showReportDialog,
                   icon: const Icon(Icons.add, color: Colors.green),
                   iconSize: 24,
                   padding: const EdgeInsets.all(4),
@@ -320,6 +337,13 @@ class _FeedScreenState extends State<FeedScreen> {
                 ).fetchApprovedAds();
               },
             ),
+          if (_isCreatingReport)
+            CreateReportDialog(
+              onClose: _hideReportDialog,
+              onReportCreated: () {
+                _hideReportDialog();
+              },
+            ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -338,10 +362,10 @@ class _FeedScreenState extends State<FeedScreen> {
           if (index == 2) {
             Navigator.of(context).pushReplacementNamed('/notifications');
           }
-          if (index == 4) {
+          if (index == 3) {
             Navigator.of(context).pushReplacementNamed('/profile');
           }
-          if (index == 3) {
+          if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
         },
@@ -361,18 +385,17 @@ class _FeedScreenState extends State<FeedScreen> {
             activeIcon: Icon(Icons.notifications, size: 28),
             label: '',
           ),
-
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded, size: 28),
+            activeIcon: Icon(Icons.person, size: 28),
+            label: '',
+          ),
           if (_userRole != 'citizen')
             BottomNavigationBarItem(
               icon: Icon(Icons.ads_click_outlined, size: 28),
               activeIcon: Icon(Icons.ads_click, size: 28),
               label: '',
             ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
         ],
       ),
     );
