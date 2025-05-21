@@ -48,6 +48,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         final chat = chatProvider.getChatById(widget.chatId);
@@ -65,11 +66,14 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
             }
           },
           child: Scaffold(
-            backgroundColor: const Color(0xFF0E1621),
+            backgroundColor: theme.scaffoldBackgroundColor,
             appBar: AppBar(
-              backgroundColor: const Color(0xFF1C2F41),
+              backgroundColor: theme.appBarTheme.backgroundColor,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.blue),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: theme.colorScheme.primary, // Use theme primary color
+                ),
                 onPressed: () {
                   _chatProvider.closeChat(widget.chatId);
                   Navigator.pop(context);
@@ -80,11 +84,11 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                   Stack(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Colors.grey[300],
-                        child: const Icon(
+                        backgroundColor: theme.colorScheme.surfaceVariant,
+                        child: Icon(
                           Icons.person,
                           size: 30,
-                          color: Colors.grey,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       // Online indicator
@@ -100,7 +104,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                               color: Colors.green,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color.fromARGB(255, 51, 74, 117),
+                                color: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor, // Border to match app bar bg
                                 width: 2,
                               ),
                             ),
@@ -115,8 +119,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                       children: [
                         Text(
                           otherUserName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: theme.appBarTheme.titleTextStyle?.color ?? theme.colorScheme.onPrimaryContainer,
                             fontSize: 16,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -128,7 +132,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                               ? 'In the chat'
                               : 'Last seen recently',
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: theme.textTheme.bodySmall?.color,
                             fontSize: 12,
                           ),
                         ),
@@ -139,7 +143,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.phone, color: Colors.blue),
+                  icon: Icon(
+                    Icons.phone,
+                    color: theme.colorScheme.primary, // Use theme primary color
+                  ),
                   onPressed: () {},
                 ),
               ],
@@ -165,8 +172,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                     top: 8,
                     bottom: 8, // Added bottom padding
                   ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1C2F41),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor, // Use theme card color for input area background
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
@@ -181,24 +188,24 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                           ), // Added left padding for text
                           child: TextField(
                             controller: _messageController,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: theme.colorScheme.onSurface),
                             decoration: InputDecoration(
-                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              hintStyle: theme.inputDecorationTheme.hintStyle,
                               border: InputBorder.none,
                               filled: true,
-                              fillColor: const Color.fromARGB(255, 21, 33, 49), // darker shade for text input
+                              fillColor: theme.inputDecorationTheme.fillColor,
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
-                                borderSide: BorderSide.none,
+                                borderSide: theme.inputDecorationTheme.enabledBorder?.borderSide ?? BorderSide.none,
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(20),
-                                borderSide: const BorderSide(
-                                  color: Colors.blue,
+                                borderSide: theme.inputDecorationTheme.focusedBorder?.borderSide ?? BorderSide(
+                                  color: theme.colorScheme.primary,
                                   width: 1,
                                 ),
                               ),
@@ -213,7 +220,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                       //   },
                       // ),
                       IconButton(
-                        icon: const Icon(Icons.send, color: Colors.blue),
+                        icon: Icon(
+                          Icons.send,
+                          color: theme.colorScheme.primary, // Use theme primary color
+                        ),
                         onPressed: () {
                           if (_messageController.text.isNotEmpty) {
                             chatProvider.sendMessage(
@@ -258,34 +268,35 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
 
   void _showImageUrlDialog(BuildContext context, ChatProvider chatProvider) {
     final TextEditingController urlController = TextEditingController();
+    final theme = Theme.of(context);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 51, 74, 117),
-          title: const Text(
+          backgroundColor: theme.dialogBackgroundColor,
+          title: Text(
             'Add Image URL',
-            style: TextStyle(color: Colors.white),
+            style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurface),
           ),
           content: TextField(
             controller: urlController,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: 'Enter image URL...',
-              hintStyle: TextStyle(color: Colors.grey[400]),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey[600]!),
+              hintStyle: theme.inputDecorationTheme.hintStyle,
+              enabledBorder: theme.inputDecorationTheme.enabledBorder ?? UnderlineInputBorder(
+                borderSide: BorderSide(color: theme.dividerColor),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.blue),
+              focusedBorder: theme.inputDecorationTheme.focusedBorder ?? UnderlineInputBorder(
+                borderSide: BorderSide(color: theme.colorScheme.primary),
               ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+              child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
             ),
             TextButton(
               onPressed: () {
@@ -299,7 +310,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                   _scrollToBottom();
                 }
               },
-              child: const Text('Send', style: TextStyle(color: Colors.blue)),
+              child: Text('Send', style: TextStyle(color: theme.colorScheme.primary)),
             ),
           ],
         );

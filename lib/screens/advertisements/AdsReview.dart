@@ -72,19 +72,30 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.account_balance, color: Colors.white),
+          icon: Icon(
+            Icons.account_balance,
+            color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        title: Text(
+          'Ads Submission Review',
+          style: theme.appBarTheme.titleTextStyle,
+        ),
       ),
-      backgroundColor: const Color(0xFF0E1621),
       body:
           _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(
+                  child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary))
               : StreamBuilder<QuerySnapshot>(
                 stream:
                     _userRole == 'government'
@@ -99,27 +110,23 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                             .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(
+                        child: CircularProgressIndicator(
+                            color: theme.colorScheme.primary));
                   }
 
                   if (snapshot.hasError) {
                     return Center(
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
+                        child: Text('Error: ${snapshot.error}',
+                            style: TextStyle(color: theme.colorScheme.error)));
                   }
 
                   final ads = snapshot.data?.docs ?? [];
 
                   if (ads.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No ads pending review',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    );
+                    return Center(
+                        child: Text('No ads pending review',
+                            style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7))));
                   }
 
                   return ListView.builder(
@@ -137,7 +144,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        color: const Color(0xFF1C2F41),
+                        color: theme.cardColor,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -148,10 +155,10 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 20,
-                                    backgroundColor: const Color(0xFF131E2F),
+                                    backgroundColor: theme.colorScheme.surfaceVariant,
                                     child: Icon(
                                       Icons.person,
-                                      color: Colors.white,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -169,12 +176,8 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                           builder: (context, userSnapshot) {
                                             if (userSnapshot.connectionState ==
                                                 ConnectionState.waiting) {
-                                              return const Text(
-                                                'Loading...',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              );
+                                              return Text('Loading...',
+                                                  style: TextStyle(color: theme.colorScheme.onSurface));
                                             }
                                             final userData =
                                                 userSnapshot.data?.data()
@@ -183,9 +186,9 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                               userData?['fullName'] ??
                                                   userData?['displayName'] ??
                                                   'Anonymous User',
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                                color: theme.colorScheme.onSurface,
                                               ),
                                             );
                                           },
@@ -193,7 +196,7 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         Text(
                                           'Posted ${_formatTimestamp(ad.createdAt)}',
                                           style: TextStyle(
-                                            color: Colors.white70,
+                                            color: theme.textTheme.bodySmall?.color,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -217,25 +220,21 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         errorBuilder:
                                             (context, error, stackTrace) =>
                                                 Container(
-                                                  color: const Color(
-                                                    0xFF232B3E,
-                                                  ),
-                                                  child: const Center(
+                                                  color: theme.colorScheme.surfaceVariant,
+                                                  child: Center(
                                                     child: Icon(
                                                       Icons.error,
-                                                      color: Colors.red,
+                                                      color: theme.colorScheme.error,
                                                     ),
                                                   ),
                                                 ),
                                       )
                                       : Container(
-                                        color: const Color(0xFF232B3E),
+                                        color: theme.colorScheme.surfaceVariant,
                                         height: 180,
-                                        child: const Center(
-                                          child: Icon(
-                                            Icons.broken_image,
-                                            color: Colors.white38,
-                                          ),
+                                        child: Center(
+                                          child: Icon(Icons.broken_image,
+                                              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.38)),
                                         ),
                                       ),
                             ),
@@ -248,19 +247,15 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                 children: [
                                   Text(
                                     ad.title,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      color: Colors.white,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(
-                                    ad.description,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                    ),
-                                  ),
+                                  Text(ad.description,
+                                      style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7))),
                                 ],
                               ),
                             ),
@@ -279,10 +274,8 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         onPressed:
                                             () => _updateAdStatus(ad.id, true),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(
-                                            0xFF7AA2F7,
-                                          ),
-                                          foregroundColor: Colors.white,
+                                          backgroundColor: theme.colorScheme.primary,
+                                          foregroundColor: theme.colorScheme.onPrimary,
                                         ),
                                         child: const Text('Accept'),
                                       ),
@@ -293,12 +286,8 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         onPressed:
                                             () => _updateAdStatus(ad.id, false),
                                         style: OutlinedButton.styleFrom(
-                                          foregroundColor: const Color(
-                                            0xFF7AA2F7,
-                                          ),
-                                          side: const BorderSide(
-                                            color: Color(0xFF7AA2F7),
-                                          ),
+                                          foregroundColor: theme.colorScheme.primary,
+                                          side: BorderSide(color: theme.colorScheme.primary),
                                         ),
                                         child: const Text('Decline'),
                                       ),
@@ -308,23 +297,23 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                               ),
                             if (_userRole == 'advertiser')
                               ad.isApproved == true
-                                  ? const Padding(
-                                    padding: EdgeInsets.all(12),
+                                ? const Padding(
+                                    padding: EdgeInsets.all(12), // This color is specific
                                     child: Text(
                                       'Ad Approved',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green,
+                                        color: Colors.green, // Kept specific green
                                       ),
                                     ),
                                   )
-                                  : const Padding(
-                                    padding: EdgeInsets.all(12),
+                                : const Padding(
+                                    padding: EdgeInsets.all(12), // This color is specific
                                     child: Text(
                                       'Ad Pending Review',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.yellow,
+                                        color: Colors.yellow, // Kept specific yellow
                                       ),
                                     ),
                                   ),
@@ -338,9 +327,9 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
 
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1C2F41),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,

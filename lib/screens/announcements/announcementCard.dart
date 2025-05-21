@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:convert';
 import 'package:translator/translator.dart';
+import 'package:profanity_filter/profanity_filter.dart';
 
 class AnnouncementCard extends StatefulWidget {
   final Announcement announcement;
@@ -509,7 +510,68 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.send, color: accentColor),
                       onPressed: () async {
-                        if (commentController.text.trim().isEmpty) return;
+                        final commentText = commentController.text.trim();
+                        if (commentText.isEmpty) return;
+
+                         final customDictionary =
+                            [
+                              // Arabic profanity words
+                              'كلمة_سيئة',
+                              'شتيمة',
+                              'لعنة',
+                              'قذر',
+                              'سخيف',
+                              'تباً',
+                              'تفو',
+                              'أحمق',
+                              'كلب',
+                              'حمار',
+                              'خنزير',
+                              'حقير',
+                              'وقح',
+                              'تافه',
+                              'غبي',
+                              'مجنون',
+                              'سافل',
+                              'نذل',
+                              'منحرف',
+                              'نجس',
+                              'واطي',
+                              'مقرف',
+                              'ملعون',
+                              'مخنث',
+                              'شرموطة',
+                              'زاني',
+                              'زانية',
+                              'زفت',
+                              'عرص',
+                              'متخلف',
+                              'معفن',
+                              'مزبلة',
+                              'كس',
+                              'طيز',
+                              'نيك',
+                              'منيوك',
+                              'قحبة',
+                              'شرموط',
+                              'بعبص',
+                              'زق',
+                              'عرصة',
+                              'زب',
+                            ];
+
+                        final filter = ProfanityFilter.filterAdditionally(customDictionary);
+                        if (filter.hasProfanity(commentText)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Your comment contains inappropriate language and cannot be posted.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
 
                         try {
                           final provider = Provider.of<AnnouncementsProvider>(
@@ -518,7 +580,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
                           );
                           await provider.addComment(
                             widget.announcement.id,
-                            commentController.text.trim(),
+                            commentText,
                             isAnonymous.value,
                           );
                           Navigator.pop(context);

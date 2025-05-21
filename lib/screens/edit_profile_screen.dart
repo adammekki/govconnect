@@ -95,12 +95,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          'Edit Profile',
+          style: theme.appBarTheme.titleTextStyle,
+        ),
+        iconTheme: theme.appBarTheme.iconTheme,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -125,13 +130,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: theme.colorScheme.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red),
+                    border: Border.all(color: theme.colorScheme.error),
                   ),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: theme.colorScheme.error),
                   ),
                 ),
               _buildInputField(
@@ -161,22 +166,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _updateProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF181B2C),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                style: theme.elevatedButtonTheme.style?.copyWith(
+                  padding: MaterialStateProperty.all(const EdgeInsets.symmetric(vertical: 16)),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(24))), // Keep specific radius if needed
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
-                        ),
+                        ), // Color will be theme.colorScheme.onPrimary if button bg is primary
                       )
                     : const Text('Update Profile'),
               ),
@@ -194,23 +195,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white70),
-        filled: true,
-        fillColor: const Color(0xFF22304D),
+        labelStyle: theme.inputDecorationTheme.labelStyle ?? TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+        prefixIcon: Icon(icon, color: theme.hintColor),
+        filled: true, // Ensure filled is true to use fillColor
+        fillColor: theme.inputDecorationTheme.fillColor, // Use fillColor from theme
+        // Explicitly define the border with the desired borderRadius,
+        // while trying to respect other border properties from the theme if possible,
+        // or just define a new one if the theme's border isn't an OutlineInputBorder.
         border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(24), // Specific borderRadius for this input field
+          borderSide: theme.inputDecorationTheme.border?.borderSide ?? BorderSide.none, // Use theme's borderSide or none
+        ),
+        enabledBorder: OutlineInputBorder( // Also apply to enabledBorder
           borderRadius: BorderRadius.circular(24),
-          borderSide: BorderSide.none,
+          borderSide: theme.inputDecorationTheme.enabledBorder?.borderSide ?? BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder( // And focusedBorder for consistency
+          borderRadius: BorderRadius.circular(24),
+          borderSide: theme.inputDecorationTheme.focusedBorder?.borderSide ?? BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       ),
     );
   }
-} 
+}

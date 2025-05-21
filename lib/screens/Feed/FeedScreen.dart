@@ -140,6 +140,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final announcementsProvider = Provider.of<AnnouncementsProvider>(context);
     final pollsProvider = Provider.of<Pollproviders>(context);
     final adProvider = Provider.of<AdProvider>(context);
@@ -189,48 +190,43 @@ class _FeedScreenState extends State<FeedScreen> {
     final feedItems = _buildFeedItems(announcements, polls, ads);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
-          child: IconButton(
-            icon: Icon(Icons.account_balance, color: Colors.white, size: 28)
-            ,onPressed:() {
-              Navigator.of(context).pushReplacementNamed('/emergencyContacts');
-            } 
+          child: Icon(
+            Icons.account_balance,
+            color: theme.colorScheme.primary, // Use theme color
+            size: 28,
           ),
         ),
         title: Container(
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFF1C2F41),
+            color: theme.cardColor, // Use theme card color for search bar background
             borderRadius: BorderRadius.circular(25),
           ),
           child: TextField(
             controller: _searchController,
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.blue,
+            style: TextStyle(color: theme.colorScheme.onSurface), // Text color on card
+            cursorColor: theme.colorScheme.primary,
             decoration: InputDecoration(
               hintText: 'Search...',
-              hintStyle: TextStyle(color: Colors.grey[400]),
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              hintStyle: theme.inputDecorationTheme.hintStyle,
+              prefixIcon: Icon(Icons.search, color: theme.hintColor),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(25),
                 borderSide: BorderSide.none,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide.none,
-              ),
+              // enabledBorder and focusedBorder will inherit from theme if not specified here
+              // or can be explicitly set to BorderSide.none if desired
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
               filled: true,
-              fillColor: const Color(0xFF1C2F41),
+              fillColor: theme.cardColor, // Match container background
             ),
             onChanged: (value) {
               setState(() {
@@ -240,60 +236,12 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ),
         actions: [
-          if (_userRole == 'government')
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Container(
-                height: 36,
-                width: 36,
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: _showCreatePostDialog,
-                  icon: const Icon(Icons.add, color: Colors.blue),
-                  iconSize: 24,
-                  padding: const EdgeInsets.all(4),
-                ),
-              ),
-            ),
-          if (_userRole == 'advertiser')
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Container(
-                height: 36,
-                width: 36,
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: _showCreateAdDialog,
-                  icon: const Icon(Icons.add, color: Colors.orange),
-                  iconSize: 24,
-                  padding: const EdgeInsets.all(4),
-                ),
-              ),
-            ),
-          if (_userRole == 'citizen')
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Container(
-                height: 36,
-                width: 36,
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: _showReportDialog,
-                  icon: const Icon(Icons.add, color: Colors.green),
-                  iconSize: 24,
-                  padding: const EdgeInsets.all(4),
-                ),
-              ),
-            ),
+          IconButton(
+            icon: Icon(Icons.home, color: theme.colorScheme.primary), // Use theme color
+            onPressed: () {
+              Navigator.of(context).pushNamed('/feed');
+            },
+          ),
         ],
       ),
       drawer: const AppDrawer(),
@@ -307,11 +255,12 @@ class _FeedScreenState extends State<FeedScreen> {
                             pollsProvider.isLoading ||
                             adProvider.isLoading
                         ? const Center(child: CircularProgressIndicator())
-                        : feedItems.isEmpty
-                        ? const Center(
+                        : feedItems.isEmpty // Remove const from here
+                        ? Center(
                           child: Text(
                             'No content yet',
-                            style: TextStyle(color: Colors.white70),
+                            // ignore: deprecated_member_use
+                            style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
                           ),
                         )
                         : ListView(children: feedItems),
@@ -348,13 +297,13 @@ class _FeedScreenState extends State<FeedScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1C2F41),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
-        currentIndex: 0,
+        currentIndex: _currentBottomNavIndex, // Use the state variable
         onTap: (index) {
           if (index == 1) {
             Navigator.of(context).pushReplacementNamed('/chat');
@@ -368,6 +317,9 @@ class _FeedScreenState extends State<FeedScreen> {
           if (index == 4) {
             Navigator.of(context).pushReplacementNamed('/adReview');
           }
+          setState(() { // Update the current index for visual feedback
+            _currentBottomNavIndex = index;
+          });
         },
         items: [
           BottomNavigationBarItem(
@@ -398,6 +350,29 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
         ],
       ),
+      floatingActionButton:
+          currentUser != null
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (_userRole == 'advertiser')
+                    FloatingActionButton.small(
+                      heroTag: 'ad_button',
+                      onPressed: _navigateToSubmitAd,
+                      backgroundColor: Colors.amber[800], // Specific color, can be themed if needed
+                      child: Icon(Icons.campaign, color: theme.colorScheme.onSecondaryContainer), // Adjust icon color if amber is dark
+                    ),
+                  if (_userRole == 'advertiser') const SizedBox(height: 16),
+                  if (_userRole == 'government')
+                    FloatingActionButton(
+                      heroTag: 'post_button',
+                      onPressed: _showCreatePostDialog,
+                      backgroundColor: theme.colorScheme.secondary, // Use theme secondary color
+                      child: Icon(Icons.add, color: theme.colorScheme.onSecondary),
+                    ),
+                ],
+              )
+              : null,
     );
   }
 }

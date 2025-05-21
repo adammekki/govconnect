@@ -39,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final user = FirebaseAuth.instance.currentUser;
     final userDataFuture = FirebaseFirestore.instance
         .collection('Users')
@@ -48,23 +49,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final provider = Provider.of<ProblemReportProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leadingWidth: 60,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Icon(Icons.account_balance, color: Colors.white, size: 28),
+          child: Icon(
+            Icons.account_balance,
+            color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface,
+            size: 28,
+          ),
         ),
-        actions: [],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.home,
+                color: theme.appBarTheme.actionsIconTheme?.color ??
+                    theme.colorScheme.onSurface),
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('/feed');
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: userDataFuture,
         builder: (context, snapshot) {
           // Show loading indicator while waiting
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+                child: CircularProgressIndicator(
+                    color: theme.colorScheme.primary));
           }
 
           // Handle errors
@@ -72,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Center(
               child: Text(
                 'Error loading profile data',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: theme.colorScheme.error),
               ),
             );
           }
@@ -83,15 +100,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 24.0),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 24.0),
                 child: Text(
                   'Profile',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 35,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               // Rest of your profile content in an Expanded widget
@@ -105,18 +119,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181B2C),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             children: [
                               CircleAvatar(
                                 radius: 40,
-                                backgroundColor: Colors.white24,
+                                backgroundColor: theme.colorScheme.surfaceVariant,
                                 child: Icon(
                                   Icons.person,
                                   size: 40,
-                                  color: Colors.white70,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -126,8 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   children: [
                                     Text(
                                       userData['fullName'] ?? 'User',
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: theme.textTheme.titleLarge?.copyWith(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -135,8 +148,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     const SizedBox(height: 4),
                                     Text(
                                       user?.email ?? '',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        color: theme.textTheme.bodyMedium?.color
+                                            ?.withOpacity(0.7),
                                         fontSize: 16,
                                       ),
                                     ),
@@ -149,11 +163,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           : 'Advertiser',
                                       style: TextStyle(
                                         color:
-                                            userData['role'] == 'government'
-                                                ? Colors.blue
-                                                : userData['role'] == 'citizen'
-                                                ? Colors.green
-                                                : Colors.orange,
+                                            userData['role'] == 'government' // Specific colors based on role
+                                                ? theme.colorScheme.primary // Or a specific blue if preferred
+                                                : Colors.green, // Or a specific green if preferred
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -171,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Profile Actions
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181B2C),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -215,7 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Account Actions
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181B2C),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -228,152 +240,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   final confirmed = await showDialog<bool>(
                                     context: context,
                                     builder: (BuildContext context) {
-                                      return BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                          sigmaX: 5,
-                                          sigmaY: 5,
+                                      return AlertDialog(
+                                        backgroundColor: theme.dialogBackgroundColor,
+                                        title: Text(
+                                          'Sign Out',
+                                          style: theme.dialogTheme.titleTextStyle ??
+                                              theme.textTheme.titleLarge?.copyWith(
+                                                  color: theme.colorScheme.onSurface),
                                         ),
-                                        child: Dialog(
-                                          backgroundColor: Colors.transparent,
-                                          insetPadding: const EdgeInsets.all(
+                                        content: Text(
+                                          'Are you sure you want to sign out?',
+                                          style: theme.dialogTheme.contentTextStyle ??
+                                              theme.textTheme.bodyMedium?.copyWith(
+                                                  color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
                                             16,
                                           ),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF0E1621),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 16,
-                                                        vertical: 16,
-                                                      ),
-                                                  decoration: const BoxDecoration(
-                                                    color: Color(0xFF1C2F41),
-                                                    borderRadius:
-                                                        BorderRadius.only(
-                                                          topLeft:
-                                                              Radius.circular(
-                                                                12,
-                                                              ),
-                                                          topRight:
-                                                              Radius.circular(
-                                                                12,
-                                                              ),
-                                                        ),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.logout,
-                                                        color: Colors.white,
-                                                      ),
-                                                      const SizedBox(width: 16),
-                                                      const Text(
-                                                        'Sign Out',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    16,
-                                                  ),
-                                                  child: Column(
-                                                    children: [
-                                                      const Text(
-                                                        'Are you sure you want to sign out?',
-                                                        style: TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 16,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 24,
-                                                      ),
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .end,
-                                                        children: [
-                                                          TextButton(
-                                                            onPressed:
-                                                                () =>
-                                                                    Navigator.of(
-                                                                      context,
-                                                                    ).pop(
-                                                                      false,
-                                                                    ),
-                                                            child: const Text(
-                                                              'Cancel',
-                                                              style: TextStyle(
-                                                                color:
-                                                                    Colors
-                                                                        .white70,
-                                                                fontSize: 16,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 16,
-                                                          ),
-                                                          GestureDetector(
-                                                            onTap:
-                                                                () =>
-                                                                    Navigator.of(
-                                                                      context,
-                                                                    ).pop(true),
-                                                            child: Container(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    horizontal:
-                                                                        24,
-                                                                    vertical:
-                                                                        12,
-                                                                  ),
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                    color:
-                                                                        Colors
-                                                                            .red,
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                          20,
-                                                                        ),
-                                                                  ),
-                                                              child: const Text(
-                                                                'Sign Out',
-                                                                style: TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
                                         ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  context,
+                                                ).pop(false),
+                                            child: Text('CANCEL',
+                                                style: TextStyle(color: theme.hintColor)),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  context,
+                                                ).pop(true),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: theme.colorScheme.error,
+                                              foregroundColor: theme.colorScheme.onError,
+                                            ),
+                                            child: const Text('SIGN OUT'),
+                                          ),
+                                        ],
                                       );
                                     },
                                   );
@@ -400,9 +306,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1C2F41),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
@@ -460,20 +366,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+      leading: Icon(icon, color: theme.colorScheme.onSurface.withOpacity(0.7)),
+      title: Text(title, style: TextStyle(color: theme.colorScheme.onSurface)),
+      trailing: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withOpacity(0.7)),
       onTap: onTap,
     );
   }
 
-  Widget _buildDivider() {
-    return const Divider(
-      color: Colors.white12,
+  Divider _buildDivider() {
+    return Divider(
       height: 1,
-      indent: 56,
-      endIndent: 16,
+      color: Colors.grey.withOpacity(0.5),
     );
   }
+  
 }

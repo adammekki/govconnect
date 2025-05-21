@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:govconnect/providers/Themeprovider.dart';
+import 'package:provider/provider.dart'; // Make sure this is imported
 import 'package:govconnect/screens/edit_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:ui';
@@ -8,12 +10,17 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0E1621),
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          'Settings',
+          style: theme.appBarTheme.titleTextStyle,
+        ),
+        iconTheme: theme.appBarTheme.iconTheme,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,17 +53,19 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: _buildSettingsCard(
-              context,
-              icon: Icons.lock,
-              title: 'Change Password',
-              onTap: () {
-                // Add your navigation or logic here
-              },
-            ),
+          _buildSettingsCard(
+            context,
+            icon: Icons.lock,
+            title: 'Change Password',
+            onTap: () {
+              // Add your navigation or logic here
+            },
           ),
+          const SizedBox(height: 16),
+
+          // Theme selection section
+          _buildThemeSelector(),
+
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -189,29 +198,72 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildThemeSelector() {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final theme = Theme.of(context); // Get theme here for specific styling
+        return Card(
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // Consistent with AppTheme
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.brightness_6, color: theme.colorScheme.onSurface),
+                  title: Text(
+                    'App Theme',
+                    style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface),
+                  ),
+                ),
+                RadioListTile<ThemeMode>(
+                  activeColor: theme.colorScheme.primary,
+                  title: Text('Light Mode', style: TextStyle(color: theme.colorScheme.onSurface)),
+                  value: ThemeMode.light,
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                  },
+                ),
+                RadioListTile<ThemeMode>(
+                  activeColor: theme.colorScheme.primary,
+                  title: Text('Dark Mode', style: TextStyle(color: theme.colorScheme.onSurface)),
+                  value: ThemeMode.dark,
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                  },
+                ),
+                RadioListTile<ThemeMode>(
+                  activeColor: theme.colorScheme.primary,
+                  title: Text('System Default', style: TextStyle(color: theme.colorScheme.onSurface)),
+                  value: ThemeMode.system,
+                  groupValue: themeProvider.themeMode,
+                  onChanged: (ThemeMode? value) {
+                    if (value != null) themeProvider.setThemeMode(value);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsCard(BuildContext context,
+      {required IconData icon, required String title, required VoidCallback onTap}) {
+    final theme = Theme.of(context);
     return Card(
-      color: const Color(0xFF22304D),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      color: theme.cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // Consistent with AppTheme
       child: ListTile(
-        leading: Icon(icon, color: Colors.white),
+        leading: Icon(icon, color: theme.colorScheme.onSurface),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
+          style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface),
         ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.white54,
-          size: 16,
-        ),
+        trailing: Icon(Icons.arrow_forward_ios, color: theme.colorScheme.onSurface.withOpacity(0.54), size: 16),
         onTap: onTap,
       ),
     );
