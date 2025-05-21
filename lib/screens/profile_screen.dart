@@ -211,11 +211,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   );
                                 },
                               ),
-                              if (_userRole == 'governmet') _buildDivider(),
-                              if (_userRole == 'governmet')
+                              if (_userRole != null && _userRole != 'advertiser') _buildDivider(),
+                              if (_userRole != null && _userRole != 'advertiser')
                                 _buildProfileAction(
                                   context,
-                                  icon: Icons.settings,
+                                  icon: Icons.sync_problem_sharp,
                                   title: 'Problems',
                                   onTap: () {
                                     Navigator.of(
