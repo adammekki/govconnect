@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:govconnect/Polls/DisplayPoll.dart';
-import 'package:govconnect/Polls/PollProvider.dart';
 import 'package:govconnect/screens/advertisements/file.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/communication/chat/chatProvider.dart';
-import 'package:govconnect/screens/emergencies/file.dart'; 
+import 'package:shared_preferences/shared_preferences.dart'; 
 import 'Polls/AddPollScreen.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -76,9 +75,6 @@ void main() async {
         ChangeNotifierProvider(create: (ctx) => AnnouncementsProvider()),
         ChangeNotifierProvider(create: (ctx) => AdProvider()),
         ChangeNotifierProvider(create: (ctx) => ChatProvider()..init()),
-
-        ChangeNotifierProvider(create: (ctx) => Pollproviders()),
-
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
@@ -86,9 +82,6 @@ void main() async {
 
       ],
       child: const MyApp(),
-    ),
-  );
-}
     ),
   );
 }
@@ -149,8 +142,6 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/editProfile': (context) => const EditProfileScreen(),
         '/settings': (context) => const SettingsScreen(),
-
-        '/emergencies': (context) =>  EmergenciesScreen(),
         '/polls': (context) =>  DisplayPoll(),
         '/addPoll': (context) => Addpollscreen(),
 

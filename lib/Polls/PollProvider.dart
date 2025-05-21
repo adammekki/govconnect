@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:govconnect/Polls/Votes.dart';
-import 'Polls.dart';
+import 'package:govconnect/Polls/polls.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Pollproviders with ChangeNotifier {
@@ -51,6 +51,7 @@ class Pollproviders with ChangeNotifier {
             createdBy: pollData['createdBy'] as String,
             createdAt: (pollData['createdAt'] as Timestamp).toDate(),
             votes: votes,
+            comments: [], // Initialize with an empty list of comments
           );
         }).toList(),
       );
@@ -101,6 +102,7 @@ class Pollproviders with ChangeNotifier {
         createdAt: DateTime.now(),
         votes:
             [], // Provide an empty list of Votes as the initial value for votes
+        comments: [], // Provide an empty list of PollComment as the initial value for comments
       );
       _polls.add(newPoll);
       notifyListeners();
@@ -174,6 +176,7 @@ class Pollproviders with ChangeNotifier {
           createdBy: _polls[pollIndex].createdBy,
           createdAt: _polls[pollIndex].createdAt,
           votes: votes,
+          comments: _polls[pollIndex].comments, // Keep existing comments
         );
         notifyListeners();
       }
