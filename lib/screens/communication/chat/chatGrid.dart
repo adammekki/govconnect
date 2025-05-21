@@ -50,7 +50,12 @@ class _ChatGridState extends State<ChatGrid> {
           leadingWidth: 60,
           leading: Padding(
             padding: const EdgeInsets.only(left: 16.0),
-            child: Icon(Icons.account_balance, color: Colors.white, size: 28),
+            child: IconButton(
+              icon: Icon(Icons.account_balance, color: Colors.white, size: 28),
+              onPressed: () {
+                Navigator.of(context).pushReplacementNamed('/feed');
+              },
+            ),
           ),
           actions: [
             Padding(
@@ -280,7 +285,7 @@ class _ChatGridState extends State<ChatGrid> {
               activeIcon: Icon(Icons.person, size: 28),
               label: '',
             ),
-            if (_userRole != 'citizen')
+            if (_userRole != null && _userRole != 'citizen')
               BottomNavigationBarItem(
                 icon: Icon(Icons.ads_click_outlined, size: 28),
                 activeIcon: Icon(Icons.ads_click, size: 28),
