@@ -38,6 +38,8 @@ import 'package:govconnect/Polls/AddPollScreen.dart';
 import 'package:govconnect/Polls/DisplayPoll.dart';
 import 'package:govconnect/screens/Feed/FeedScreen.dart';
 import 'package:govconnect/screens/advertisements/AdsReview.dart';
+import 'package:govconnect/providers/Themeprovider.dart'; // Adjust path
+import 'package:govconnect/theme/app_theme.dart'; // Import AppTheme
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +58,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+        ),
       ],
 
       child: const MyApp(),
@@ -68,33 +73,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'GovConnect',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1C2F41),
-          primary: const Color(0xFF1C2F41),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1C2F41),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-          ),
-        ),
-      ),
+      theme: AppTheme.lightTheme, // Use light theme from AppTheme
+      darkTheme: AppTheme.darkTheme, // Use dark theme from AppTheme
+      themeMode: themeProvider.themeMode, // Set themeMode from ThemeProvider
       initialRoute: '/feed',
       routes: {
         '/auth': (context) => const AuthPage(),

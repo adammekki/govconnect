@@ -68,21 +68,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent, // Make AppBar transparent
         elevation: 0,
         leadingWidth: 60,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Icon(Icons.account_balance, color: Colors.white, size: 28),
+          child: Icon(
+            Icons.account_balance,
+            color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface,
+            size: 28,
+          ),
         ),
         actions: [
           // Test button (only visible in debug mode)
           // if (const bool.fromEnvironment('dart.vm.product') == false)
           IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
+            icon: Icon(Icons.home,
+                color: theme.appBarTheme.actionsIconTheme?.color ??
+                    theme.colorScheme.onSurface),
             onPressed: () {
               Navigator.of(context).pushNamed('/feed');
             },
@@ -94,9 +102,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 listen: false,
               ).markAllAsRead();
             },
-            child: const Text(
+            child: Text(
               'Mark All Read',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: theme.colorScheme.primary.withOpacity(0.7)),
             ),
           ),
         ],
@@ -111,7 +119,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (provider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                // CircularProgressIndicator will use the theme's accent color by default
               ),
             );
           }
@@ -120,27 +128,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 8.0),
+                padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0), // Added top and increased bottom padding
                 child: Text(
                   'Notifications',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 35,
+                  style: TextStyle( // This will now inherit from theme.textTheme.headlineSmall or similar
+                    // color: theme.textTheme.headlineSmall?.color, // Example if you want to be explicit
+                    fontSize: 32, // Adjusted for better visual hierarchy
                     fontWeight: FontWeight.bold,
-                  ),
+                  ), // Text color will be based on theme
                 ),
               ),
               Expanded(
                 child:
                     provider.notifications.isEmpty
                         ? Center(
-                          child: Text(
-                            'No notifications yet',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
+                            child: Text(
+                              'No notifications yet',
+                              style: TextStyle(
+                                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
                         )
                         : RefreshIndicator(
                           onRefresh: () => provider.loadNotifications(),
@@ -172,13 +180,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1C2F41),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
         showSelectedLabels: false,
         showUnselectedLabels: false,
         elevation: 0,
-        currentIndex: 2,
+        currentIndex: 2, // This should ideally be managed by a state variable if you want it to change
         onTap: (index) {
           if (index == 0) {
             Navigator.of(context).pushReplacementNamed('/feed');
