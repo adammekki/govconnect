@@ -151,6 +151,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final announcementsProvider = Provider.of<AnnouncementsProvider>(context);
     final pollsProvider = Provider.of<Pollproviders>(context);
     final adProvider = Provider.of<AdProvider>(context);
@@ -200,14 +201,14 @@ class _FeedScreenState extends State<FeedScreen> {
     final feedItems = _buildFeedItems(announcements, polls, ads);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
           child: IconButton(
-            icon: Icon(Icons.account_balance, color: Colors.white, size: 28),
+            icon: Icon(Icons.account_balance, color: theme.colorScheme.primary, size: 28),
             onPressed: () {
               Navigator.of(context).pushReplacementNamed('/emergencyContacts');
             },
@@ -216,32 +217,28 @@ class _FeedScreenState extends State<FeedScreen> {
         title: Container(
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFF1C2F41),
+            color: theme.cardColor, // Use theme card color for search bar background
             borderRadius: BorderRadius.circular(25),
           ),
           child: TextField(
             controller: _searchController,
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.blue,
+            style: TextStyle(color: theme.colorScheme.onSurface), // Text color on card
+            cursorColor: theme.colorScheme.primary,
             decoration: InputDecoration(
               hintText: 'Search...',
-              hintStyle: TextStyle(color: Colors.grey[400]),
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              hintStyle: theme.inputDecorationTheme.hintStyle,
+              prefixIcon: Icon(Icons.search, color: theme.hintColor),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(25),
                 borderSide: BorderSide.none,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(25),
-                borderSide: BorderSide.none,
-              ),
+              // enabledBorder and focusedBorder will inherit from theme if not specified here
+              // or can be explicitly set to BorderSide.none if desired
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
               filled: true,
-              fillColor: const Color(0xFF1C2F41),
+              fillColor: theme.cardColor, // Match container background
             ),
             onChanged: (value) {
               setState(() {
@@ -318,11 +315,12 @@ class _FeedScreenState extends State<FeedScreen> {
                             pollsProvider.isLoading ||
                             adProvider.isLoading
                         ? const Center(child: CircularProgressIndicator())
-                        : feedItems.isEmpty
-                        ? const Center(
+                        : feedItems.isEmpty // Remove const from here
+                        ? Center(
                           child: Text(
                             'No content yet',
-                            style: TextStyle(color: Colors.white70),
+                            // ignore: deprecated_member_use
+                            style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
                           ),
                         )
                         : ListView(children: feedItems),
@@ -383,8 +381,8 @@ class _FeedScreenState extends State<FeedScreen> {
               // Keep existing properties
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.transparent,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.white.withOpacity(0.6),
+        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
+        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
               showSelectedLabels: false,
               showUnselectedLabels: false,
               elevation: 0,

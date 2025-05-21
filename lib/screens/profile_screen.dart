@@ -39,6 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final user = FirebaseAuth.instance.currentUser;
     final userDataFuture = FirebaseFirestore.instance
         .collection('Users')
@@ -48,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final provider = Provider.of<ProblemReportProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1621),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -56,7 +57,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
           child: IconButton(
-            icon: Icon(Icons.account_balance, color: Colors.white, size: 28),
+            icon: Icon(
+              Icons.account_balance,
+              color:
+                  theme.appBarTheme.iconTheme?.color ??
+                  theme.colorScheme.onSurface,
+              size: 28,
+            ),
             onPressed: () {
               Navigator.of(context).pushReplacementNamed('/feed');
             },
@@ -69,7 +76,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context, snapshot) {
           // Show loading indicator while waiting
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            );
           }
 
           // Handle errors
@@ -77,7 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return Center(
               child: Text(
                 'Error loading profile data',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: theme.colorScheme.error),
               ),
             );
           }
@@ -88,13 +99,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 0, 16.0, 24.0),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 24.0),
                 child: Text(
                   'Profile',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 35,
+                  style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -110,18 +119,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181B2C),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             children: [
                               CircleAvatar(
                                 radius: 40,
-                                backgroundColor: Colors.white24,
+                                backgroundColor:
+                                    theme.colorScheme.surfaceVariant,
                                 child: Icon(
                                   Icons.person,
                                   size: 40,
-                                  color: Colors.white70,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -131,19 +141,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   children: [
                                     Text(
                                       userData['fullName'] ?? 'User',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       user?.email ?? '',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 16,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color
+                                                ?.withOpacity(0.7),
+                                            fontSize: 16,
+                                          ),
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
@@ -176,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Profile Actions
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181B2C),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -211,8 +226,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   );
                                 },
                               ),
-                              if (_userRole != null && _userRole != 'advertiser') _buildDivider(),
-                              if (_userRole != null && _userRole != 'advertiser')
+                              if (_userRole != null &&
+                                  _userRole != 'advertiser')
+                                _buildDivider(),
+                              if (_userRole != null &&
+                                  _userRole != 'advertiser')
                                 _buildProfileAction(
                                   context,
                                   icon: Icons.sync_problem_sharp,
@@ -232,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Account Actions
                         Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181B2C),
+                            color: theme.cardColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -291,14 +309,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                         color: Colors.white,
                                                       ),
                                                       const SizedBox(width: 16),
-                                                      const Text(
+                                                      Text(
                                                         'Sign Out',
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
+                                                        style:
+                                                            theme
+                                                                .dialogTheme
+                                                                .titleTextStyle ??
+                                                            theme
+                                                                .textTheme
+                                                                .titleLarge
+                                                                ?.copyWith(
+                                                                  color:
+                                                                      theme
+                                                                          .colorScheme
+                                                                          .onSurface,
+                                                                ),
                                                       ),
                                                     ],
                                                   ),
@@ -309,12 +334,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                   ),
                                                   child: Column(
                                                     children: [
-                                                      const Text(
+                                                      Text(
                                                         'Are you sure you want to sign out?',
-                                                        style: TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 16,
-                                                        ),
+                                                        style:
+                                                            theme
+                                                                .dialogTheme
+                                                                .contentTextStyle ??
+                                                            theme
+                                                                .textTheme
+                                                                .bodyMedium
+                                                                ?.copyWith(
+                                                                  color: theme
+                                                                      .colorScheme
+                                                                      .onSurface
+                                                                      .withOpacity(
+                                                                        0.7,
+                                                                      ),
+                                                                ),
                                                       ),
                                                       const SizedBox(
                                                         height: 24,
@@ -332,13 +368,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                                     ).pop(
                                                                       false,
                                                                     ),
-                                                            child: const Text(
+                                                            child: Text(
                                                               'Cancel',
                                                               style: TextStyle(
                                                                 color:
-                                                                    Colors
-                                                                        .white70,
-                                                                fontSize: 16,
+                                                                    theme
+                                                                        .hintColor,
                                                               ),
                                                             ),
                                                           ),
@@ -369,12 +404,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                                           20,
                                                                         ),
                                                                   ),
-                                                              child: const Text(
+                                                              child: Text(
                                                                 'Sign Out',
                                                                 style: TextStyle(
-                                                                  color:
-                                                                      Colors
-                                                                          .white,
+                                                                  backgroundColor:
+                                                                      theme
+                                                                          .colorScheme
+                                                                          .error,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .bold,
@@ -442,8 +478,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Keep existing properties
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.transparent,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.white.withOpacity(0.6),
+              selectedItemColor:
+                  theme.bottomNavigationBarTheme.selectedItemColor ??
+                  theme.colorScheme.primary,
+              unselectedItemColor:
+                  theme.bottomNavigationBarTheme.unselectedItemColor ??
+                  theme.colorScheme.onSurface.withOpacity(0.7),
               showSelectedLabels: false,
               showUnselectedLabels: false,
               elevation: 0,
@@ -504,20 +544,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white70),
+      leading: Icon(icon, color: theme.colorScheme.onSurface.withOpacity(0.7)),
+      title: Text(title, style: TextStyle(color: theme.colorScheme.onSurface)),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: theme.colorScheme.onSurface.withOpacity(0.7),
+      ),
       onTap: onTap,
     );
   }
 
-  Widget _buildDivider() {
-    return const Divider(
-      color: Colors.white12,
-      height: 1,
-      indent: 56,
-      endIndent: 16,
-    );
+  Divider _buildDivider() {
+    return Divider(height: 1, color: Colors.grey.withOpacity(0.5));
   }
 }
