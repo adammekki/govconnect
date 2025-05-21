@@ -211,6 +211,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   );
                                 },
                               ),
+                              if (_userRole == 'governmet') _buildDivider(),
+                              if (_userRole == 'governmet')
+                                _buildProfileAction(
+                                  context,
+                                  icon: Icons.settings,
+                                  title: 'Problems',
+                                  onTap: () {
+                                    Navigator.of(
+                                      context,
+                                    ).pushReplacementNamed('/problems');
+                                  },
+                                ),
                             ],
                           ),
                         ),
