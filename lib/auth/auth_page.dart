@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 import 'email_verification_screen.dart';
-import 'package:govconnect/homePage_screen.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -24,7 +23,8 @@ class AuthPage extends StatelessWidget {
             }
             
             // Otherwise show logged in screen
-            return const HomePage(title: 'GovConnect');
+            Navigator.pushReplacementNamed(context, '/feed');
+            return Container(); // Return an empty container after navigation
           } else {
             // User is not logged in
             return LoginScreen();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'PollProvider.dart'; // Corrected import
+import '../providers/PollProvider.dart'; // Corrected import
 import 'package:firebase_auth/firebase_auth.dart'; // Added import
 
 class Addpollscreen extends StatefulWidget {
@@ -82,8 +82,15 @@ class _AddpollscreenState extends State<Addpollscreen> {
 
   @override
   Widget build(BuildContext context) {
+    final darkBackground = const Color(0xFF0E1621);
+    final cardBackground = const Color(0xFF121C2A);
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Poll')),
+      backgroundColor: darkBackground,
+      appBar: AppBar(
+        title: const Text('Add Poll', style: TextStyle(color: Colors.white)),
+        backgroundColor: cardBackground,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -91,14 +98,28 @@ class _AddpollscreenState extends State<Addpollscreen> {
           children: [
             const Text(
               'Create a New Poll',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _questionController,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 labelText: 'Poll Question',
-                border: OutlineInputBorder(),
+                labelStyle: const TextStyle(color: Colors.white70),
+                filled: true,
+                fillColor: cardBackground,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: Colors.blueGrey),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: Colors.blue),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -107,7 +128,7 @@ class _AddpollscreenState extends State<Addpollscreen> {
               children: [
                 const Text(
                   'Options',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 if (_optionControllers.length < 4)
                   IconButton(
@@ -129,9 +150,23 @@ class _AddpollscreenState extends State<Addpollscreen> {
                         Expanded(
                           child: TextField(
                             controller: _optionControllers[index],
+                            style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Option ${index + 1}',
-                              border: const OutlineInputBorder(),
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              filled: true,
+                              fillColor: cardBackground,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.blueGrey),
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.blue),
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
                             ),
                           ),
                         ),
@@ -156,9 +191,14 @@ class _AddpollscreenState extends State<Addpollscreen> {
               child: ElevatedButton(
                 onPressed: _addPoll,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
                 child: const Text('Add Poll'),

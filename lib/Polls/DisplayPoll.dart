@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:govconnect/Polls/Polls.dart';
+import 'package:govconnect/providers/PollProvider.dart';
 import 'package:provider/provider.dart';
-import 'PollProvider.dart';
 import 'PollCard.dart';
 
 class DisplayPoll extends StatefulWidget {
@@ -17,8 +17,16 @@ class _DisplayPollState extends State<DisplayPoll> {
     return Scaffold(
       backgroundColor: const Color(0xFF0E1621),
       appBar: AppBar(
-        title: const Text('Polls'),
-        backgroundColor: const Color(0xFF121C2A),
+        backgroundColor: const Color(0xFF1C2F41),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.account_balance, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'Polls',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
       body: FutureBuilder(
         future: Provider.of<Pollproviders>(context, listen: false).fetchPolls(),

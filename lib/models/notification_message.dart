@@ -8,6 +8,7 @@ class NotificationMessage {
   final bool read;
   final DateTime createdAt;
   final String userId;  // Added to track which user the notification belongs to
+  final Map<String, dynamic>? data;  // Added to store additional notification data
 
   NotificationMessage({
     required this.id,
@@ -17,6 +18,7 @@ class NotificationMessage {
     required this.read,
     required this.createdAt,
     required this.userId,
+    this.data,
   });
 
   factory NotificationMessage.fromFirestore(DocumentSnapshot doc) {
@@ -38,6 +40,7 @@ class NotificationMessage {
       read: data['read'] ?? false,
       createdAt: createdAtDate,
       userId: data['userId'] ?? '',
+      data: data['data'],
     );
   }
 
@@ -49,6 +52,7 @@ class NotificationMessage {
       'read': read,
       'createdAt': Timestamp.fromDate(createdAt),
       'userId': userId,
+      'data': data,
     };
   }
 
@@ -60,6 +64,7 @@ class NotificationMessage {
     bool? read,
     DateTime? createdAt,
     String? userId,
+    Map<String, dynamic>? data,
   }) {
     return NotificationMessage(
       id: id ?? this.id,
@@ -69,6 +74,7 @@ class NotificationMessage {
       read: read ?? this.read,
       createdAt: createdAt ?? this.createdAt,
       userId: userId ?? this.userId,
+      data: data ?? this.data,
     );
   }
 } 
