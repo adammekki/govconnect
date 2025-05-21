@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:govconnect/providers/Themeprovider.dart';
-import 'package:provider/provider.dart'; // Make sure this is imported
 import 'package:govconnect/screens/edit_profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:ui';
+import 'package:govconnect/providers/Themeprovider.dart';
+import 'package:provider/provider.dart'; // Make sure this is imported
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -16,10 +16,6 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        title: Text(
-          'Settings',
-          style: theme.appBarTheme.titleTextStyle,
-        ),
         iconTheme: theme.appBarTheme.iconTheme,
       ),
       body: Column(
@@ -61,11 +57,10 @@ class SettingsScreen extends StatelessWidget {
               // Add your navigation or logic here
             },
           ),
-          const SizedBox(height: 16),
-
-          // Theme selection section
-          _buildThemeSelector(),
-
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: _buildThemeSelector(),
+          ),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),

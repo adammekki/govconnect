@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'Ads.dart';
 import 'dart:convert';
 
@@ -37,7 +38,7 @@ class AdCard extends StatelessWidget {
                         future:
                             FirebaseFirestore.instance
                                 .collection('Users')
-                                .doc(ad.postedBy)
+                                .doc(ad.postedBy) // This is the ad poster's ID
                                 .get(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -47,11 +48,11 @@ class AdCard extends StatelessWidget {
                               style: TextStyle(color: Colors.white),
                             );
                           }
-                          final userData =
+                          final adPosterProfileData = // Renamed for clarity: this is ad.postedBy's profile
                               snapshot.data?.data() as Map<String, dynamic>?;
                           return Text(
-                            userData?['fullName'] ??
-                                userData?['displayName'] ??
+                            adPosterProfileData?['fullName'] ??
+                                adPosterProfileData?['displayName'] ??
                                 'Advertiser',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
@@ -63,13 +64,13 @@ class AdCard extends StatelessWidget {
                       Row(
                         children: [
                           Icon(
-                            Icons.local_offer,
+                            Icons.local_offer, // Was const, but color is not const
                             size: 12,
                             color: Color(0xFF7AA2F7),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Advertisement',
+                            'Advertisement', // Was const, but style is not const
                             style: TextStyle(
                               color: Color(0xFF7AA2F7),
                               fontSize: 12,
@@ -81,9 +82,27 @@ class AdCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.more_vert, color: Colors.white),
-                  onPressed: () => _showOptionsMenu(context),
+                // Conditional IconButton for options menu
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance.collection('Users').doc(ad.postedBy).snapshots(),
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.hasData && userSnapshot.data?.exists == true) {
+                      final adPosterData = userSnapshot.data!.data() as Map<String, dynamic>;
+                      final adPosterRole = adPosterData['role'] as String?;
+                      final currentAuthUser = FirebaseAuth.instance.currentUser;
+
+                      // Show button if:
+                      // 1. The ad poster's role is 'advertiser'
+                      // 2. The current logged-in user is the one who posted the ad
+                      if (adPosterRole == 'advertiser' && currentAuthUser?.uid == ad.postedBy) {
+                        return IconButton(
+                          icon: const Icon(Icons.more_vert, color: Colors.white),
+                          onPressed: () => _showOptionsMenu(context),
+                        );
+                      }
+                    }
+                    return const SizedBox.shrink(); // Otherwise, show nothing
+                  },
                 ),
               ],
             ),

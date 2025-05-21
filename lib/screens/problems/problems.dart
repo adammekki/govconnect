@@ -39,15 +39,23 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1C2F41),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.account_balance, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: IconButton(
+            icon: Icon(Icons.account_balance, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('/feed');
+            },
+          ),
         ),
         title: Consumer<ProblemReportProvider>(
           builder: (context, provider, child) {
             return Text(
               provider.isGovernment ? 'All Reported Problems' : 'My Reports',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             );
           },
         ),
@@ -65,20 +73,21 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
                 }
               });
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'date',
-                child: Text('Sort by Date'),
-              ),
-              const PopupMenuItem(
-                value: 'status',
-                child: Text('Sort by Status'),
-              ),
-              const PopupMenuItem(
-                value: 'title',
-                child: Text('Sort by Title'),
-              ),
-            ],
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(
+                    value: 'date',
+                    child: Text('Sort by Date'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'status',
+                    child: Text('Sort by Status'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'title',
+                    child: Text('Sort by Title'),
+                  ),
+                ],
           ),
         ],
       ),
@@ -97,15 +106,24 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
 
           // Apply filters
           if (_selectedStatus != 'all') {
-            problems = problems.where((p) => p.status == _selectedStatus).toList();
+            problems =
+                problems.where((p) => p.status == _selectedStatus).toList();
           }
 
           // Apply search
           if (_searchQuery.isNotEmpty) {
-            problems = problems.where((p) =>
-              p.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              p.description.toLowerCase().contains(_searchQuery.toLowerCase())
-            ).toList();
+            problems =
+                problems
+                    .where(
+                      (p) =>
+                          p.title.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ) ||
+                          p.description.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ),
+                    )
+                    .toList();
           }
 
           // Apply sorting
@@ -139,7 +157,10 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
                       decoration: InputDecoration(
                         hintText: 'Search problems...',
                         hintStyle: const TextStyle(color: Colors.white54),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.white54,
+                        ),
                         filled: true,
                         fillColor: const Color(0xFF181B2C),
                         border: OutlineInputBorder(
@@ -172,139 +193,166 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
                 ),
               ),
               Expanded(
-                child: problems.isEmpty
-                    ? Center(
-                        child: Text(
-                          provider.isGovernment
-                              ? 'No problems reported yet.'
-                              : 'You haven\'t reported any problems yet.',
-                          style: const TextStyle(color: Colors.white70),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: problems.length,
-                        itemBuilder: (context, index) {
-                          final report = problems[index];
-                          return Dismissible(
-                            key: Key(report.id),
-                            // Only allow dismissing if user is government or owns the report
-                            direction: (provider.isGovernment || report.userId == provider.currentUserId)
-                                ? DismissDirection.endToStart
-                                : DismissDirection.none,
-                            background: Container(
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 20.0),
-                              color: Colors.red,
-                              child: const Icon(Icons.delete, color: Colors.white),
-                            ),
-                            confirmDismiss: (direction) async {
-                              return await showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    backgroundColor: const Color(0xFF1C2F41),
-                                    title: const Text(
-                                      'Confirm Delete',
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                    ),
-                                    content: const Text(
-                                      'Are you sure you want to delete this report?',
-                                      style: TextStyle(color: Colors.white70),
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(false),
-                                        child: const Text(
-                                          'CANCEL',
-                                          style: TextStyle(color: Colors.white70),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.of(context).pop(true),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                          foregroundColor: Colors.white,
-                                        ),
-                                        child: const Text('DELETE'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                            onDismissed: (direction) {
-                              provider.deleteProblemReport(report.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Problem report deleted'),
+                child:
+                    problems.isEmpty
+                        ? Center(
+                          child: Text(
+                            provider.isGovernment
+                                ? 'No problems reported yet.'
+                                : 'You haven\'t reported any problems yet.',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        )
+                        : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: problems.length,
+                          itemBuilder: (context, index) {
+                            final report = problems[index];
+                            return Dismissible(
+                              key: Key(report.id),
+                              // Only allow dismissing if user is government or owns the report
+                              direction:
+                                  (provider.isGovernment ||
+                                          report.userId ==
+                                              provider.currentUserId)
+                                      ? DismissDirection.endToStart
+                                      : DismissDirection.none,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20.0),
+                                color: Colors.red,
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
                                 ),
-                              );
-                            },
-                            child: Card(
-                              color: const Color(0xFF181B2C),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
                               ),
-                              child: ListTile(
-                                title: Text(
-                                  report.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      report.description,
-                                      style: const TextStyle(color: Colors.white70),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      _formatDate(report.createdAt),
-                                      style: const TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                trailing: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Chip(
-                                      label: Text(
-                                        report.status.replaceAll('_', ' ').toUpperCase(),
-                                        style: const TextStyle(
+                              confirmDismiss: (direction) async {
+                                return await showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: const Color(0xFF1C2F41),
+                                      title: const Text(
+                                        'Confirm Delete',
+                                        style: TextStyle(
                                           color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      content: const Text(
+                                        'Are you sure you want to delete this report?',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(false),
+                                          child: const Text(
+                                            'CANCEL',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed:
+                                              () => Navigator.of(
+                                                context,
+                                              ).pop(true),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child: const Text('DELETE'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              onDismissed: (direction) {
+                                provider.deleteProblemReport(report.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Problem report deleted'),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                color: const Color(0xFF181B2C),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: ListTile(
+                                  title: Text(
+                                    report.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        report.description,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _formatDate(report.createdAt),
+                                        style: const TextStyle(
+                                          color: Colors.white54,
                                           fontSize: 12,
                                         ),
                                       ),
-                                      backgroundColor: _getStatusColor(report.status),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                  trailing: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Chip(
+                                        label: Text(
+                                          report.status
+                                              .replaceAll('_', ' ')
+                                              .toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        backgroundColor: _getStatusColor(
+                                          report.status,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => ProblemDetailScreen(
+                                              report: report,
+                                            ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProblemDetailScreen(report: report),
-                                    ),
-                                  );
-                                },
                               ),
-                            ),
-                          );
-                        },
-                      ),
+                            );
+                          },
+                        ),
               ),
             ],
           );
@@ -314,7 +362,7 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
         builder: (context, provider, child) {
           // Only show FAB for citizens
           if (provider.isGovernment) return const SizedBox.shrink();
-          
+
           return FloatingActionButton(
             backgroundColor: const Color(0xFF1C2F41),
             onPressed: () {

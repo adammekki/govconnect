@@ -51,18 +51,25 @@ class _CreateReportDialogState extends State<CreateReportDialog> {
 
   Future<void> _submitReport() async {
     if (_formKey.currentState!.validate() && _selectedLocation != null) {
+      debugPrint("[CreateReportDialog] Submit report initiated. Setting isLoading = true.");
       setState(() => _isLoading = true);
       try {
         final provider = Provider.of<ProblemReportProvider>(context, listen: false);
         
+        debugPrint("[CreateReportDialog] Calling provider.submitProblemReport...");
+
+
         await provider.submitProblemReport(
           title: _titleController.text,
           description: _descriptionController.text,
           image: _image,
           location: GeoPoint(_selectedLocation!.latitude, _selectedLocation!.longitude),
         );
+        debugPrint("[CreateReportDialog] provider.submitProblemReport completed successfully.");
 
         if (mounted) {
+            debugPrint("[CreateReportDialog] Widget is mounted. Calling onReportCreated.");
+
           widget.onReportCreated();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Problem reported successfully')),

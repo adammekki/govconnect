@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Ads.dart';
 import 'dart:convert';
+import 'dart:ui';
 
 class AdReviewScreen extends StatefulWidget {
   const AdReviewScreen({Key? key}) : super(key: key);
@@ -79,23 +80,28 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.account_balance,
-            color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: IconButton(
+            icon: Icon(
+              Icons.account_balance,
+              color:
+                  theme.appBarTheme.iconTheme?.color ??
+                  theme.colorScheme.onSurface,
+            ),
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('/feed');
+            },
           ),
-          onPressed: () => Navigator.of(context).pushReplacementNamed('/feed'),
-        ),
-        title: Text(
-          'Ads Submission Review',
-          style: theme.appBarTheme.titleTextStyle,
         ),
       ),
       body:
           _isLoading
               ? Center(
-                  child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary))
+                child: CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                ),
+              )
               : StreamBuilder<QuerySnapshot>(
                 stream:
                     _userRole == 'government'
@@ -111,22 +117,34 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
-                        child: CircularProgressIndicator(
-                            color: theme.colorScheme.primary));
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.primary,
+                      ),
+                    );
                   }
 
                   if (snapshot.hasError) {
                     return Center(
-                        child: Text('Error: ${snapshot.error}',
-                            style: TextStyle(color: theme.colorScheme.error)));
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+                    );
                   }
 
                   final ads = snapshot.data?.docs ?? [];
 
                   if (ads.isEmpty) {
                     return Center(
-                        child: Text('No ads pending review',
-                            style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7))));
+                      child: Text(
+                        'No ads pending review',
+                        style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                            0.7,
+                          ),
+                        ),
+                      ),
+                    );
                   }
 
                   return ListView.builder(
@@ -155,7 +173,8 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 20,
-                                    backgroundColor: theme.colorScheme.surfaceVariant,
+                                    backgroundColor:
+                                        theme.colorScheme.surfaceVariant,
                                     child: Icon(
                                       Icons.person,
                                       color: theme.colorScheme.onSurfaceVariant,
@@ -176,8 +195,15 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                           builder: (context, userSnapshot) {
                                             if (userSnapshot.connectionState ==
                                                 ConnectionState.waiting) {
-                                              return Text('Loading...',
-                                                  style: TextStyle(color: theme.colorScheme.onSurface));
+                                              return Text(
+                                                'Loading...',
+                                                style: TextStyle(
+                                                  color:
+                                                      theme
+                                                          .colorScheme
+                                                          .onSurface,
+                                                ),
+                                              );
                                             }
                                             final userData =
                                                 userSnapshot.data?.data()
@@ -188,7 +214,8 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                                   'Anonymous User',
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                color: theme.colorScheme.onSurface,
+                                                color:
+                                                    theme.colorScheme.onSurface,
                                               ),
                                             );
                                           },
@@ -196,7 +223,11 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         Text(
                                           'Posted ${_formatTimestamp(ad.createdAt)}',
                                           style: TextStyle(
-                                            color: theme.textTheme.bodySmall?.color,
+                                            color:
+                                                theme
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.color,
                                             fontSize: 12,
                                           ),
                                         ),
@@ -220,11 +251,17 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         errorBuilder:
                                             (context, error, stackTrace) =>
                                                 Container(
-                                                  color: theme.colorScheme.surfaceVariant,
+                                                  color:
+                                                      theme
+                                                          .colorScheme
+                                                          .surfaceVariant,
                                                   child: Center(
                                                     child: Icon(
                                                       Icons.error,
-                                                      color: theme.colorScheme.error,
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .error,
                                                     ),
                                                   ),
                                                 ),
@@ -233,8 +270,13 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         color: theme.colorScheme.surfaceVariant,
                                         height: 180,
                                         child: Center(
-                                          child: Icon(Icons.broken_image,
-                                              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.38)),
+                                          child: Icon(
+                                            Icons.broken_image,
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant
+                                                .withOpacity(0.38),
+                                          ),
                                         ),
                                       ),
                             ),
@@ -254,8 +296,13 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  Text(ad.description,
-                                      style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7))),
+                                  Text(
+                                    ad.description,
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurface
+                                          .withOpacity(0.7),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -274,8 +321,10 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         onPressed:
                                             () => _updateAdStatus(ad.id, true),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: theme.colorScheme.primary,
-                                          foregroundColor: theme.colorScheme.onPrimary,
+                                          backgroundColor:
+                                              theme.colorScheme.primary,
+                                          foregroundColor:
+                                              theme.colorScheme.onPrimary,
                                         ),
                                         child: const Text('Accept'),
                                       ),
@@ -286,8 +335,11 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                                         onPressed:
                                             () => _updateAdStatus(ad.id, false),
                                         style: OutlinedButton.styleFrom(
-                                          foregroundColor: theme.colorScheme.primary,
-                                          side: BorderSide(color: theme.colorScheme.primary),
+                                          foregroundColor:
+                                              theme.colorScheme.primary,
+                                          side: BorderSide(
+                                            color: theme.colorScheme.primary,
+                                          ),
                                         ),
                                         child: const Text('Decline'),
                                       ),
@@ -297,23 +349,30 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                               ),
                             if (_userRole == 'advertiser')
                               ad.isApproved == true
-                                ? const Padding(
-                                    padding: EdgeInsets.all(12), // This color is specific
+                                  ? const Padding(
+                                    padding: EdgeInsets.all(
+                                      12,
+                                    ), // This color is specific
                                     child: Text(
                                       'Ad Approved',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green, // Kept specific green
+                                        color:
+                                            Colors.green, // Kept specific green
                                       ),
                                     ),
                                   )
-                                : const Padding(
-                                    padding: EdgeInsets.all(12), // This color is specific
+                                  : const Padding(
+                                    padding: EdgeInsets.all(
+                                      12,
+                                    ), // This color is specific
                                     child: Text(
                                       'Ad Pending Review',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.yellow, // Kept specific yellow
+                                        color:
+                                            Colors
+                                                .yellow, // Kept specific yellow
                                       ),
                                     ),
                                   ),
@@ -325,57 +384,87 @@ class _AdReviewScreenState extends State<AdReviewScreen> {
                 },
               ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
-        selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
-        unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        elevation: 0,
-        currentIndex: 4,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushReplacementNamed('/feed');
-          }
-          if (index == 1) {
-            Navigator.of(context).pushReplacementNamed('/chat');
-          }
-          if (index == 2) {
-            Navigator.of(context).pushReplacementNamed('/notifications');
-          }
-          if (index == 3) {
-            Navigator.of(context).pushReplacementNamed('/profile');
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined, size: 28),
-            activeIcon: Icon(Icons.home, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined, size: 28),
-            activeIcon: Icon(Icons.message, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none, size: 28),
-            activeIcon: Icon(Icons.notifications, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
-          if (_userRole != null && _userRole != 'citizen')
-            BottomNavigationBarItem(
-              icon: Icon(Icons.ads_click_outlined, size: 28),
-              activeIcon: Icon(Icons.ads_click, size: 28),
-              label: '',
+      bottomNavigationBar: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 75),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(
+                0.1,
+              ), // Very subtle white for glass effect
+              border: const Border(
+                top: BorderSide(
+                  color: Colors.white24, // Slightly visible border
+                  width: 0.5,
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -1),
+                ),
+              ],
             ),
-        ],
+            child: BottomNavigationBar(
+              // Keep existing properties
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              selectedItemColor:
+                  theme.bottomNavigationBarTheme.selectedItemColor ??
+                  theme.colorScheme.primary,
+              unselectedItemColor:
+                  theme.bottomNavigationBarTheme.unselectedItemColor ??
+                  theme.colorScheme.onSurface.withOpacity(0.7),
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              elevation: 0,
+              currentIndex: 4,
+              onTap: (index) {
+                if (index == 0) {
+                  Navigator.of(context).pushReplacementNamed('/feed');
+                }
+                if (index == 1) {
+                  Navigator.of(context).pushReplacementNamed('/chat');
+                }
+                if (index == 2) {
+                  Navigator.of(context).pushReplacementNamed('/notifications');
+                }
+                if (index == 3) {
+                  Navigator.of(context).pushReplacementNamed('/profile');
+                }
+              },
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined, size: 28),
+                  activeIcon: Icon(Icons.home, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.message_outlined, size: 28),
+                  activeIcon: Icon(Icons.message, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.notifications_none, size: 28),
+                  activeIcon: Icon(Icons.notifications, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline_rounded, size: 28),
+                  activeIcon: Icon(Icons.person, size: 28),
+                  label: '',
+                ),
+                if (_userRole != null && _userRole != 'citizen')
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.ads_click_outlined, size: 28),
+                    activeIcon: Icon(Icons.ads_click, size: 28),
+                    label: '',
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

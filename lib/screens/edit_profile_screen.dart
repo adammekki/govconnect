@@ -101,10 +101,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        title: Text(
-          'Edit Profile',
-          style: theme.appBarTheme.titleTextStyle,
-        ),
         iconTheme: theme.appBarTheme.iconTheme,
       ),
       body: SingleChildScrollView(
@@ -114,12 +110,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(8.0, 0, 16.0, 16),
                 child: Text(
                   'Edit Profile',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: theme.appBarTheme.titleTextStyle?.color,
                     fontSize: 35,
                     fontWeight: FontWeight.bold,
                   ),

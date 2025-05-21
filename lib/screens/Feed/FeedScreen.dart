@@ -13,6 +13,7 @@ import 'package:govconnect/screens/advertisements/AdCard.dart';
 import 'package:govconnect/screens/advertisements/AdsSubmission.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:govconnect/screens/problems/report_problem.dart';
+import 'dart:ui';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -100,6 +101,16 @@ class _FeedScreenState extends State<FeedScreen> {
     setState(() {
       _isCreatingReport = false;
     });
+  }
+
+  bool _isScrolled = false;
+
+  void _onScroll(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification) {
+      setState(() {
+        _isScrolled = notification.metrics.pixels > 20;
+      });
+    }
   }
   // Update the onPressed in the advertiser action button:
   // onPressed: _showCreateAdDialog,
@@ -196,10 +207,11 @@ class _FeedScreenState extends State<FeedScreen> {
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
-          child: Icon(
-            Icons.account_balance,
-            color: theme.colorScheme.primary, // Use theme color
-            size: 28,
+          child: IconButton(
+            icon: Icon(Icons.account_balance, color: theme.colorScheme.primary, size: 28),
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('/emergencyContacts');
+            },
           ),
         ),
         title: Container(
@@ -236,12 +248,60 @@ class _FeedScreenState extends State<FeedScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.home, color: theme.colorScheme.primary), // Use theme color
-            onPressed: () {
-              Navigator.of(context).pushNamed('/feed');
-            },
-          ),
+          if (_userRole == 'government')
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: _showCreatePostDialog,
+                  icon: const Icon(Icons.add, color: Colors.blue),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(4),
+                ),
+              ),
+            ),
+          if (_userRole == 'advertiser')
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: _showCreateAdDialog,
+                  icon: const Icon(Icons.add, color: Colors.orange),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(4),
+                ),
+              ),
+            ),
+          if (_userRole == 'citizen')
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: _showReportDialog,
+                  icon: const Icon(Icons.add, color: Colors.green),
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(4),
+                ),
+              ),
+            ),
         ],
       ),
       drawer: const AppDrawer(),
@@ -295,84 +355,84 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+      bottomNavigationBar: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 75),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(
+                0.1,
+              ), // Very subtle white for glass effect
+              border: const Border(
+                top: BorderSide(
+                  color: Colors.white24, // Slightly visible border
+                  width: 0.5,
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: BottomNavigationBar(
+              // Keep existing properties
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
         selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
         unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        elevation: 0,
-        currentIndex: _currentBottomNavIndex, // Use the state variable
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.of(context).pushReplacementNamed('/chat');
-          }
-          if (index == 2) {
-            Navigator.of(context).pushReplacementNamed('/notifications');
-          }
-          if (index == 3) {
-            Navigator.of(context).pushReplacementNamed('/profile');
-          }
-          if (index == 4) {
-            Navigator.of(context).pushReplacementNamed('/adReview');
-          }
-          setState(() { // Update the current index for visual feedback
-            _currentBottomNavIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined, size: 28),
-            activeIcon: Icon(Icons.home, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined, size: 28),
-            activeIcon: Icon(Icons.message, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none, size: 28),
-            activeIcon: Icon(Icons.notifications, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
-          if (_userRole != null && _userRole != 'citizen')
-            BottomNavigationBarItem(
-              icon: Icon(Icons.ads_click_outlined, size: 28),
-              activeIcon: Icon(Icons.ads_click, size: 28),
-              label: '',
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              elevation: 0,
+              currentIndex: 0,
+              onTap: (index) {
+                if (index == 1) {
+                  Navigator.of(context).pushReplacementNamed('/chat');
+                }
+                if (index == 2) {
+                  Navigator.of(context).pushReplacementNamed('/notifications');
+                }
+                if (index == 3) {
+                  Navigator.of(context).pushReplacementNamed('/profile');
+                }
+                if (index == 4) {
+                  Navigator.of(context).pushReplacementNamed('/adReview');
+                }
+              },
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined, size: 28),
+                  activeIcon: Icon(Icons.home, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.message_outlined, size: 28),
+                  activeIcon: Icon(Icons.message, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.notifications_none, size: 28),
+                  activeIcon: Icon(Icons.notifications, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline_rounded, size: 28),
+                  activeIcon: Icon(Icons.person, size: 28),
+                  label: '',
+                ),
+                if (_userRole != null && _userRole != 'citizen')
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.ads_click_outlined, size: 28),
+                    activeIcon: Icon(Icons.ads_click, size: 28),
+                    label: '',
+                  ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
-      floatingActionButton:
-          currentUser != null
-              ? Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (_userRole == 'advertiser')
-                    FloatingActionButton.small(
-                      heroTag: 'ad_button',
-                      onPressed: _navigateToSubmitAd,
-                      backgroundColor: Colors.amber[800], // Specific color, can be themed if needed
-                      child: Icon(Icons.campaign, color: theme.colorScheme.onSecondaryContainer), // Adjust icon color if amber is dark
-                    ),
-                  if (_userRole == 'advertiser') const SizedBox(height: 16),
-                  if (_userRole == 'government')
-                    FloatingActionButton(
-                      heroTag: 'post_button',
-                      onPressed: _showCreatePostDialog,
-                      backgroundColor: theme.colorScheme.secondary, // Use theme secondary color
-                      child: Icon(Icons.add, color: theme.colorScheme.onSecondary),
-                    ),
-                ],
-              )
-              : null,
     );
   }
 }

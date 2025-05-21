@@ -80,7 +80,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+        ),
       ],
       child: const MyApp(),
     ),

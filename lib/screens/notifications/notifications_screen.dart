@@ -5,6 +5,7 @@ import '../../providers/notification_provider.dart';
 import '../../models/notification_message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:ui';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
@@ -96,23 +97,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         leadingWidth: 60,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Icon(
-            Icons.account_balance,
-            color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface,
-            size: 28,
+          child: IconButton(
+            icon: Icon(Icons.account_balance, color: theme.appBarTheme.iconTheme?.color ?? theme.colorScheme.onSurface, size: 28),
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed('/feed');
+            },
           ),
         ),
         actions: [
           // Test button (only visible in debug mode)
           // if (const bool.fromEnvironment('dart.vm.product') == false)
-          IconButton(
-            icon: Icon(Icons.home,
-                color: theme.appBarTheme.actionsIconTheme?.color ??
-                    theme.colorScheme.onSurface),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/feed');
-            },
-          ),
           TextButton(
             onPressed: () {
               Provider.of<NotificationProvider>(
@@ -196,57 +190,84 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ?? theme.cardColor,
+      bottomNavigationBar: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 75),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(
+                0.1,
+              ), // Very subtle white for glass effect
+              border: const Border(
+                top: BorderSide(
+                  color: Colors.white24, // Slightly visible border
+                  width: 0.5,
+                ),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: BottomNavigationBar(
+              // Keep existing properties
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
         selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor ?? theme.colorScheme.primary,
         unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.colorScheme.onSurface.withOpacity(0.7),
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        elevation: 0,
-        currentIndex: 2, // This should ideally be managed by a state variable if you want it to change
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.of(context).pushReplacementNamed('/feed');
-          }
-          if (index == 1) {
-            Navigator.of(context).pushReplacementNamed('/chat');
-          }
-          if (index == 3) {
-            Navigator.of(context).pushReplacementNamed('/profile');
-          }
-          if (index == 4) {
-            Navigator.of(context).pushReplacementNamed('/adReview');
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined, size: 28),
-            activeIcon: Icon(Icons.home, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message_outlined, size: 28),
-            activeIcon: Icon(Icons.message, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none, size: 28),
-            activeIcon: Icon(Icons.notifications, size: 28),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded, size: 28),
-            activeIcon: Icon(Icons.person, size: 28),
-            label: '',
-          ),
-          if (_userRole != null && _userRole != 'citizen')
-            BottomNavigationBarItem(
-              icon: Icon(Icons.ads_click_outlined, size: 28),
-              activeIcon: Icon(Icons.ads_click, size: 28),
-              label: '',
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+
+              elevation: 0,
+              currentIndex: 2,
+              onTap: (index) {
+                if (index == 0) {
+                  Navigator.of(context).pushReplacementNamed('/feed');
+                }
+                if (index == 1) {
+                  Navigator.of(context).pushReplacementNamed('/chat');
+                }
+                if (index == 3) {
+                  Navigator.of(context).pushReplacementNamed('/profile');
+                }
+                if (index == 4) {
+                  Navigator.of(context).pushReplacementNamed('/adReview');
+                }
+              },
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined, size: 28),
+                  activeIcon: Icon(Icons.home, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.message_outlined, size: 28),
+                  activeIcon: Icon(Icons.message, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.notifications_none, size: 28),
+                  activeIcon: Icon(Icons.notifications, size: 28),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline_rounded, size: 28),
+                  activeIcon: Icon(Icons.person, size: 28),
+                  label: '',
+                ),
+                if (_userRole != null && _userRole != 'citizen')
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.ads_click_outlined, size: 28),
+                    activeIcon: Icon(Icons.ads_click, size: 28),
+                    label: '',
+                  ),
+              ],
             ),
-        ],
+          ),
+        ),
       ),
     );
   }
