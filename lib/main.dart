@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+
+import 'package:govconnect/Polls/DisplayPoll.dart';
+import 'package:govconnect/screens/advertisements/file.dart';
+import 'package:govconnect/screens/announcements/file.dart';
+import 'package:govconnect/screens/communication/chat/chatGrid.dart';
+import 'package:govconnect/screens/communication/chat/chatProvider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; 
+import 'Polls/AddPollScreen.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+
 import 'package:govconnect/models/problem_report.dart';
 //providers
+
 import 'package:provider/provider.dart';
 import 'package:govconnect/providers/emergency_provider.dart';
 import 'package:govconnect/providers/notification_provider.dart';
@@ -55,6 +66,9 @@ void main() async {
   
   // Get shared preferences
 
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('userId', 'Abdelrahman');
+
   runApp(
     MultiProvider(
       providers: [
@@ -65,6 +79,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
+
       ],
       child: const MyApp(),
     ),
@@ -127,6 +142,9 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/editProfile': (context) => const EditProfileScreen(),
         '/settings': (context) => const SettingsScreen(),
+        '/polls': (context) =>  DisplayPoll(),
+        '/addPoll': (context) => Addpollscreen(),
+
       },
     );
   }

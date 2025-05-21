@@ -87,6 +87,23 @@ class HomePage extends StatelessWidget {
               );
             },
           ),
+
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DisplayPoll()),
+              );
+            },
+            child: const Text('Go to Polls'),
+          ), 
+          ElevatedButton(
+            onPressed: () {
+              signUserOut(context);
+            },
+            child: const Text('Sign Out'),
+          )
+
         ],
       ),
       body: SingleChildScrollView(
