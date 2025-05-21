@@ -5,12 +5,11 @@ import 'package:govconnect/screens/advertisements/file.dart';
 import 'package:govconnect/screens/announcements/file.dart';
 import 'package:govconnect/screens/communication/chat/chatGrid.dart';
 import 'package:govconnect/screens/communication/chat/chatProvider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Polls/AddPollScreen.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
 
 import 'package:govconnect/models/problem_report.dart';
 //providers
@@ -49,6 +48,8 @@ import 'package:govconnect/Polls/AddPollScreen.dart';
 import 'package:govconnect/Polls/DisplayPoll.dart';
 import 'package:govconnect/screens/Feed/FeedScreen.dart';
 import 'package:govconnect/screens/advertisements/AdsReview.dart';
+import 'package:govconnect/providers/Themeprovider.dart'; // Adjust path
+import 'package:govconnect/theme/app_theme.dart'; // Import AppTheme
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -60,10 +61,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
+
   // Set up the background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  
+
   // Get shared preferences
 
   final prefs = await SharedPreferences.getInstance();
@@ -79,10 +80,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ProblemReportProvider()),
         ChangeNotifierProvider(create: (ctx) => Pollproviders()),
-        ChangeNotifierProvider(
-          create: (context) => ThemeProvider(),
-        ),
-
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const MyApp(),
     ),
@@ -112,22 +110,23 @@ class MyApp extends StatelessWidget {
         '/chat': (context) => const ChatGrid(),
         '/emergencyContacts': (context) => EmergencyContactsScreen(),
         '/problems': (context) => ProblemsScreen(),
-        '/problemDetail': (context) => ProblemDetailScreen(
-         report: ModalRoute.of(context)!.settings.arguments as ProblemReport,
-         ),
+        '/problemDetail':
+            (context) => ProblemDetailScreen(
+              report:
+                  ModalRoute.of(context)!.settings.arguments as ProblemReport,
+            ),
         '/announcements': (context) => AnnouncementsScreen(),
-        '/polls': (context) =>  DisplayPoll(),
+        '/polls': (context) => DisplayPoll(),
         '/addPoll': (context) => Addpollscreen(),
         '/feed': (context) => FeedScreen(),
         '/adReview': (context) => AdReviewScreen(),
         '/notifications': (context) => NotificationsScreen(),
-        '/advertisements': (context) =>  AdvertisementsScreen(),
+        '/advertisements': (context) => AdvertisementsScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/editProfile': (context) => const EditProfileScreen(),
         '/settings': (context) => const SettingsScreen(),
-        '/polls': (context) =>  DisplayPoll(),
+        '/polls': (context) => DisplayPoll(),
         '/addPoll': (context) => Addpollscreen(),
-
       },
     );
   }
