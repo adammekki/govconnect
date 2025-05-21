@@ -68,8 +68,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.of(context).pushReplacementNamed('/feed');
             },
           ),
-          const SizedBox(width: 8),
-        ],
+        ),
+        actions: [],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
         future: userDataFuture,
